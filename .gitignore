@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+
+output/embeddings.npy
+output/metadata.pkl
+output/faiss_index.bin
+
+.DS_Store
+.env
