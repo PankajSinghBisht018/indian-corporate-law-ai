@@ -67,7 +67,7 @@ def get_model_name():
     try:
         available = [m['model'] for m in ollama.list().get('models', [])]
         if not available:
-            _cached_model = 'mistral'
+            _cached_model = 'pi3'
             return _cached_model
         for pref in preferred:
             for m in available:
