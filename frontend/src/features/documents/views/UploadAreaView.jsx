@@ -4,7 +4,8 @@ import toast from "react-hot-toast"
 import { addFile } from "../../../shared/utils/storage"
 import AnalysisResult from "./AnalysisResultView"
 
-const BACKEND_URL = "http://localhost:5000"
+import { API_BASE_URL } from "../../../shared/utils/api"
+const BACKEND_URL = API_BASE_URL
 
 export default function UploadArea({ isDark, onFilesUpdated }) {
   const [isUploading, setIsUploading] = useState(false)

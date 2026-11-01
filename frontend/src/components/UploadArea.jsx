@@ -4,7 +4,7 @@ import toast from "react-hot-toast"
 import { addFile } from "../utils/storage"
 import AnalysisResult from "./AnalysisResult"
 
-const BACKEND_URL = "http://localhost:5000"
+const BACKEND_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:5000").replace(/\/+$/, "")
 
 export default function UploadArea({ isDark, onFilesUpdated }) {
   const [isUploading, setIsUploading] = useState(false)

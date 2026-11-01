@@ -12,6 +12,14 @@
     font-size: 16px;
     scroll-behavior: smooth;
   }
+  html.dark, html.dark body {
+    background-color: #000000;
+    color: #ffffff;
+  }
+  html:not(.dark), html:not(.dark) body {
+    background-color: #f9fafb;
+    color: #111827;
+  }
 }
 
 * {

@@ -10,8 +10,12 @@ class DocumentRepository:
 
     @classmethod
     async def create_document(cls, user_id: str, filename: str, filepath: str) -> dict:
+        try:
+            uid = ObjectId(user_id)
+        except Exception:
+            uid = user_id
         doc = {
-            "user_id":    ObjectId(user_id),
+            "user_id":    uid,
             "filename":   filename,
             "filepath":   filepath,
             "status":     "UPLOADED",
@@ -32,8 +36,22 @@ class DocumentRepository:
 
     @classmethod
     async def get_user_documents(cls, user_id: str) -> list:
-        cursor = cls.get_collection().find({"user_id": ObjectId(user_id)}).sort("created_at", -1)
+        try:
+            oid = ObjectId(user_id)
+            query = {"$or": [{"user_id": oid}, {"user_id": user_id}]}
+        except Exception:
+            query = {"user_id": user_id}
+        cursor = cls.get_collection().find(query).sort("created_at", -1)
         return await cursor.to_list(length=200)
+
+    @classmethod
+    async def count_user_documents(cls, user_id: str) -> int:
+        try:
+            oid = ObjectId(user_id)
+            query = {"$or": [{"user_id": oid}, {"user_id": user_id}]}
+        except Exception:
+            query = {"user_id": user_id}
+        return await cls.get_collection().count_documents(query)
 
     @classmethod
     async def update_document_status(cls, doc_id: str, status: str) -> None:

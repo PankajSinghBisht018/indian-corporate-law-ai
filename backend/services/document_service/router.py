@@ -10,10 +10,12 @@ from shared.security.jwt import extract_user_from_token
 from shared.database.user_repo import UserRepository
 from shared.database.document_repo import DocumentRepository
 from shared.storage.provider import get_storage_provider
+from shared.config.settings import get_settings
 from services.document_service import service
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["documents"])
+
 
 def _auth(authorization: Optional[str]) -> str:
     if not authorization or not authorization.startswith("Bearer "):
@@ -31,40 +33,64 @@ async def _handle_upload(file: UploadFile, authorization: Optional[str]) -> dict
     if not user:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
 
-    limit = 5
-    current_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    current_count = user.get("daily_doc_count", 0)
-    last_reset = user.get("last_reset_date")
+    settings = get_settings()
+    is_admin = (
+        user.get("role") == "admin" 
+        or user.get("email", "").lower() in settings.ADMIN_EMAILS
+        or user.get("is_unlimited") is True
+    )
 
-    if last_reset != current_date:
-        current_count = 0
+    # Requirement: 5 documents limit for regular user; Unlimited for admin
+    if not is_admin:
+        limit = 5
+        current_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        current_count = user.get("daily_doc_count", 0)
+        last_reset = user.get("last_reset_date")
 
-    if current_count >= limit:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, f"Daily limit of {limit} documents reached.")
+        # Auto-reset if a new day has started
+        if last_reset != current_date:
+            current_count = 0
+
+        # Check current count against limit
+        if current_count >= limit:
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN, 
+                f"Document upload limit reached ({limit} documents maximum for User accounts). Ask your Admin to reset your limit from the Admin Panel, or sign in as Admin for unlimited uploads."
+            )
+
+        await UserRepository.increment_daily_doc_count(user_id, current_date)
 
     active_statuses = ["QUEUED", "PROCESSING", "EXTRACTING", "CHUNKING", "EMBEDDING", "INDEXING", "ANALYZING"]
     collection = DocumentRepository.get_collection()
     from bson.objectid import ObjectId
+    try:
+        user_oid = ObjectId(user_id)
+        user_filter = {"$or": [{"user_id": user_oid}, {"user_id": user_id}]}
+    except Exception:
+        user_filter = {"user_id": user_id}
+
+    cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=5)
     active_count = await collection.count_documents({
-        "user_id": ObjectId(user_id),
-        "status": {"$in": active_statuses}
+        **user_filter,
+        "status": {"$in": active_statuses},
+        "created_at": {"$gte": cutoff_time}
     })
     if active_count > 0:
         raise HTTPException(status.HTTP_400_BAD_REQUEST,
                             "You already have a document processing. Please wait for it to finish or cancel it.")
 
-    await UserRepository.increment_daily_doc_count(user_id, current_date)
     content = await file.read()
     if len(content) > 5 * 1024 * 1024:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "File size must be under 5MB.")
     username = user["email"].split("@")[0]
     doc = await service.process_file_upload(user_id, username, file.filename, content)
-    logger.info(f"📤  Upload: {file.filename} → doc_id={doc['doc_id']}")
+    logger.info(f"📤  Upload ({'Admin-Unlimited' if is_admin else 'User'}): {file.filename} → doc_id={doc['doc_id']}")
     return {
         "success":  True,
         "doc_id":   doc["doc_id"],
         "filename": doc["filename"],
         "status":   doc["status"],
+        "is_admin": is_admin,
         "message":  "File uploaded. Call POST /summarize/{doc_id} to analyse.",
     }
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { CheckCircle, XCircle, AlertTriangle, RefreshCw, Settings, Zap } from "lucide-react"
 
-const BACKEND_URL = "http://localhost:5000"
+const BACKEND_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:5000").replace(/\/+$/, "")
 
 export default function BackendStatus({ isDark }) {
   const [status, setStatus] = useState(null)

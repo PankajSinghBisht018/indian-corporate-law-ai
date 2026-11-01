@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Scale, LayoutDashboard, FolderOpen, LogOut, X, Sun, Moon, Shield, CreditCard, Activity, HelpCircle, LifeBuoy, Users } from 'lucide-react'
+import { Scale, LayoutDashboard, FolderOpen, LogOut, X, Sun, Moon, Shield, CreditCard, Activity, Users, ShieldCheck, Sparkles, User as UserIcon } from 'lucide-react'
 import { useAuthStore } from '../features/auth/models/authStore'
 import { useUIStore } from '../shared/store/uiStore'
+import { LegalBuddyLogo } from '../shared/ui/LegalBuddyLogo'
 
 function SidebarContent({ onClose }) {
   const { page, setPage, theme, toggleTheme } = useUIStore()
   const { user, logout } = useAuthStore()
 
   const navItems = []
+  const isAdmin = user?.role === 'admin'
   
   const [hoursLeft, setHoursLeft] = useState(24)
   const [minsLeft, setMinsLeft] = useState(0)
@@ -26,9 +28,10 @@ function SidebarContent({ onClose }) {
     return () => clearInterval(t)
   }, [])
   
-  if (user?.role === 'admin') {
+  if (isAdmin) {
     navItems.push({ id: 'admin_overview', icon: LayoutDashboard, label: 'Dashboard' })
-    navItems.push({ id: 'admin_agents', icon: Users, label: 'All Agents' })
+    navItems.push({ id: 'admin_users',    icon: Users,           label: 'All Users' })
+    navItems.push({ id: 'documents',      icon: FolderOpen,      label: 'Documents' })
   } else {
     navItems.push({ id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' })
     navItems.push({ id: 'documents', icon: FolderOpen,      label: 'Documents' })
@@ -37,13 +40,20 @@ function SidebarContent({ onClose }) {
   return (
     <div className="w-60 h-screen bg-gray-50 dark:bg-neutral-950 border-r border-gray-200 dark:border-neutral-800 flex flex-col shrink-0 sticky top-0 overflow-hidden z-30 transition-colors duration-300">
       
+      {/* Brand Header: App name is LegalBuddy, AI Summarization, IT Corporate Law Specialization */}
       <div className="flex items-center gap-2.5 pt-5 px-4 pb-4 border-b border-gray-200 dark:border-neutral-800 shrink-0">
-        <motion.div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center shrink-0 shadow-md shadow-orange-500/30">
-          <Scale size={20} color="#fff" />
-        </motion.div>
+        <LegalBuddyLogo size={36} withGlow={true} className="shrink-0" />
         <div className="flex-1 min-w-0">
-          <div className="font-outfit text-lg font-extrabold text-black dark:text-white tracking-tight">LegalBuddy</div>
-          <div className="text-[10px] text-gray-500 dark:text-gray-400 font-medium mt-px font-outfit">AI Legal Platform</div>
+          <div className="font-outfit text-base font-extrabold text-black dark:text-white tracking-tight flex items-center gap-1">
+            LegalBuddy
+          </div>
+          <div className="text-[9px] text-orange-600 dark:text-orange-400 font-semibold mt-0.5 font-outfit uppercase tracking-wider flex items-center gap-1 leading-none">
+            <span className="w-1.5 h-1.5 rounded-full bg-orange-500 inline-block animate-pulse"></span>
+            AI Document Summarization
+          </div>
+          <div className="text-[9px] text-gray-500 dark:text-neutral-400 font-poppins mt-0.5 leading-tight truncate">
+            IT Corporate Law Specialization
+          </div>
         </div>
         {onClose && (
           <button onClick={onClose} className="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-150 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-neutral-800">
@@ -53,7 +63,9 @@ function SidebarContent({ onClose }) {
       </div>
 
       <nav className="flex flex-col gap-1 py-3 px-3 flex-1">
-        <div className="text-[9px] font-bold tracking-widest uppercase text-gray-400 dark:text-gray-600 pt-1 px-2 pb-2 font-outfit">Navigation</div>
+        <div className="text-[9px] font-bold tracking-widest uppercase text-gray-400 dark:text-gray-600 pt-1 px-2 pb-2 font-outfit">
+          {isAdmin ? 'Admin Navigation' : 'User Navigation'}
+        </div>
 
         {navItems.map(({ id, icon: Icon, label }) => (
           <motion.button
@@ -73,26 +85,55 @@ function SidebarContent({ onClose }) {
           </motion.button>
         ))}
 
+        {/* Profile Link in Navigation */}
+        <button
+          onClick={() => { setPage('profile'); onClose?.(); }}
+          className={`flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer transition-all duration-150 text-sm font-medium w-full border text-left font-outfit tracking-wide relative ${
+            page === 'profile'
+              ? 'bg-orange-500/10 text-orange-500 border-orange-500/30 font-semibold'
+              : 'bg-transparent text-gray-500 dark:text-gray-400 border-transparent hover:bg-gray-100 dark:hover:bg-neutral-800 hover:text-black dark:hover:text-white'
+          }`}
+        >
+          <span className={`w-5 h-5 flex items-center justify-center shrink-0 ${page === 'profile' ? 'text-orange-500' : 'text-gray-400 dark:text-gray-500'}`}>
+            <UserIcon size={17} />
+          </span>
+          <span className="flex-1">Profile & Settings</span>
+          {page === 'profile' && <motion.div layoutId="active-indicator" className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />}
+        </button>
       </nav>
 
-      {user?.role === 'agent' && (
+      {/* Uploads Usage Box: Unlimited for Admin, 5 for User */}
+      {isAdmin ? (
+        <div className="px-4 py-3 mb-2 mx-3 bg-green-500/10 border border-green-500/20 rounded-xl">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] font-bold tracking-widest uppercase text-green-700 dark:text-green-400 font-outfit flex items-center gap-1">
+              <ShieldCheck size={12} /> Admin Plan
+            </span>
+            <span className="text-[11px] font-bold text-green-600 dark:text-green-400 font-poppins">Unlimited</span>
+          </div>
+          <p className="text-[10px] text-gray-500 dark:text-gray-400 font-poppins">
+            No document upload limits applied to Admin accounts.
+          </p>
+        </div>
+      ) : (
         <div className="px-4 py-3 mb-2 mx-3 bg-white/60 dark:bg-neutral-900/60 border border-gray-200 dark:border-neutral-800 rounded-xl">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500 font-outfit">Daily Usage</span>
-            <span className="text-xs font-semibold text-orange-500 font-poppins">{user.daily_doc_count || 0}/5</span>
+            <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500 font-outfit">Upload Limit</span>
+            <span className="text-xs font-semibold text-orange-500 font-poppins">{user?.daily_doc_count || 0}/5</span>
           </div>
           <div className="h-1.5 w-full bg-gray-200 dark:bg-neutral-800 rounded-full overflow-hidden mb-1.5">
             <div 
               className="h-full bg-orange-500 transition-all duration-500 ease-out" 
-              style={{ width: `${Math.min(100, ((user.daily_doc_count || 0) / 5) * 100)}%` }}
+              style={{ width: `${Math.min(100, ((user?.daily_doc_count || 0) / 5) * 100)}%` }}
             />
           </div>
-          <div className="text-[9px] text-gray-400 dark:text-gray-500 font-medium text-right flex items-center justify-end gap-1">
-            Resets in {hoursLeft}h {minsLeft}m
+          <div className="text-[9px] text-gray-400 dark:text-gray-500 font-medium text-right flex items-center justify-end gap-1 font-poppins">
+            User limit (5 docs) · Resets in {hoursLeft}h {minsLeft}m
           </div>
         </div>
       )}
 
+      {/* Footer controls & user profile */}
       <div className="p-3 border-t border-gray-200 dark:border-neutral-800 flex flex-col gap-1.5">
         <button onClick={toggleTheme} className="flex items-center justify-between gap-2 py-2 px-2.5 rounded-xl bg-transparent border border-gray-200 dark:border-neutral-800 text-gray-500 dark:text-gray-400 text-xs font-semibold cursor-pointer w-full font-outfit hover:bg-gray-100 dark:hover:bg-neutral-800">
           <div className="flex items-center gap-2">
@@ -104,16 +145,31 @@ function SidebarContent({ onClose }) {
           </div>
         </button>
 
-
-        <div className="flex items-center gap-2.5 py-2 px-2.5 rounded-xl bg-gray-100 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800">
+        <div 
+          onClick={() => { setPage('profile'); onClose?.(); }}
+          className={`flex items-center gap-2.5 py-2 px-2.5 rounded-xl border cursor-pointer transition-colors group ${
+            page === 'profile'
+              ? 'bg-orange-500/10 border-orange-500/30'
+              : 'bg-gray-100 dark:bg-neutral-900 border-gray-200 dark:border-neutral-800 hover:border-orange-500/40'
+          }`}
+          title="Open Profile Management"
+        >
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-600 to-orange-500 flex items-center justify-center text-xs font-extrabold text-white shrink-0 font-outfit">
             {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold text-black dark:text-white font-outfit overflow-hidden text-ellipsis whitespace-nowrap">{user?.name || user?.email?.split('@')[0] || 'User'}</div>
-            <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-px font-poppins">Legal Analyst</div>
+            <div className="text-xs font-semibold text-black dark:text-white font-outfit overflow-hidden text-ellipsis whitespace-nowrap group-hover:text-orange-500 transition-colors">
+              {user?.name || user?.email?.split('@')[0] || 'User'}
+            </div>
+            <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-px font-poppins capitalize truncate">
+              {isAdmin ? 'Admin' : (user?.designation || user?.role_designation || 'IT Legal User')}
+            </div>
           </div>
-          <button onClick={() => { logout(); onClose?.(); }} className="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-neutral-800">
+          <button 
+            onClick={(e) => { e.stopPropagation(); logout(); onClose?.(); }} 
+            className="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-red-500 hover:bg-gray-200 dark:hover:bg-neutral-800 transition-colors" 
+            title="Log out"
+          >
             <LogOut size={13} />
           </button>
         </div>

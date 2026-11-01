@@ -6,58 +6,31 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 CORPORATE_CLAUSES_LIBRARY: list[dict] = [
-    {"id": "indemnification",       "name": "Indemnification Clause",           "category": "liability",    "keywords": ["indemnify", "indemnification", "hold harmless", "defend"]},
-    {"id": "limitation_liability",  "name": "Limitation of Liability Clause",   "category": "liability",    "keywords": ["liability", "limit", "cap", "maximum", "damages"]},
-    {"id": "force_majeure",         "name": "Force Majeure Clause",             "category": "performance",  "keywords": ["force majeure", "act of god", "unforeseen", "beyond control", "natural disaster"]},
-    {"id": "arbitration",           "name": "Arbitration / Dispute Resolution", "category": "dispute",      "keywords": ["arbitration", "arbitrator", "dispute", "MSME", "Lok Adalat", "mediation"]},
-    {"id": "governing_law",         "name": "Governing Law & Jurisdiction",     "category": "dispute",      "keywords": ["governing law", "jurisdiction", "courts of", "applicable law", "subject to"]},
-    {"id": "confidentiality",       "name": "Confidentiality / NDA Clause",     "category": "ip",           "keywords": ["confidential", "non-disclosure", "NDA", "proprietary", "trade secret"]},
-    {"id": "non_compete",           "name": "Non-Compete Clause",               "category": "restriction",  "keywords": ["non-compete", "non compete", "not engage", "compete", "competing business"]},
-    {"id": "non_solicitation",      "name": "Non-Solicitation Clause",          "category": "restriction",  "keywords": ["non-solicitation", "non solicitation", "solicit", "poach", "hire away"]},
-    {"id": "ip_ownership",          "name": "Intellectual Property Ownership",  "category": "ip",           "keywords": ["intellectual property", "IP", "copyright", "patent", "trademark", "invention", "work for hire"]},
-    {"id": "assignment",            "name": "Assignment Clause",                "category": "transfer",     "keywords": ["assign", "assignment", "transfer", "novation", "delegate"]},
-    {"id": "termination",           "name": "Termination Clause",               "category": "exit",         "keywords": ["terminate", "termination", "notice period", "end the agreement", "cancellation"]},
-    {"id": "termination_cause",     "name": "Termination for Cause",            "category": "exit",         "keywords": ["terminate for cause", "material breach", "immediate termination", "without notice"]},
-    {"id": "term_renewal",          "name": "Term & Renewal Clause",            "category": "duration",     "keywords": ["term", "duration", "renew", "renewal", "auto-renew", "expire"]},
-    {"id": "payment_terms",         "name": "Payment Terms Clause",             "category": "financial",    "keywords": ["payment", "invoice", "fee", "consideration", "remuneration", "salary", "within 30 days"]},
-    {"id": "penalty_interest",      "name": "Penalty / Late Payment Interest",  "category": "financial",    "keywords": ["penalty", "late payment", "interest", "delay", "overdue"]},
-    {"id": "representations",       "name": "Representations & Warranties",     "category": "assurance",    "keywords": ["represent", "warrant", "warranty", "guarantee", "representation"]},
-    {"id": "entire_agreement",      "name": "Entire Agreement / Merger Clause", "category": "structure",    "keywords": ["entire agreement", "merger clause", "supersede", "complete agreement"]},
-    {"id": "amendment",             "name": "Amendment Clause",                 "category": "structure",    "keywords": ["amend", "amendment", "modify", "modification", "written consent"]},
-    {"id": "waiver",                "name": "Waiver Clause",                    "category": "structure",    "keywords": ["waiver", "waive", "relinquish", "forbear"]},
-    {"id": "severability",          "name": "Severability Clause",              "category": "structure",    "keywords": ["severability", "severable", "invalid provision", "unenforceable"]},
-    {"id": "notices",               "name": "Notices Clause",                   "category": "structure",    "keywords": ["notice", "notification", "communicate", "registered post", "email notice"]},
-    {"id": "probation",             "name": "Probation Period Clause",          "category": "employment",   "keywords": ["probation", "probationary", "trial period", "confirmation"]},
-    {"id": "gratuity",              "name": "Gratuity Clause",                  "category": "employment",   "keywords": ["gratuity", "Payment of Gratuity Act", "5 years", "continuous service"]},
-    {"id": "pf_esic",               "name": "PF / ESIC Deduction Clause",       "category": "employment",   "keywords": ["PF", "provident fund", "ESIC", "EPF", "employee state insurance"]},
-    {"id": "leave_policy",          "name": "Leave Policy Clause",              "category": "employment",   "keywords": ["leave", "annual leave", "sick leave", "casual leave", "earned leave"]},
-    {"id": "moonlighting",          "name": "Moonlighting / Dual Employment",   "category": "employment",   "keywords": ["moonlighting", "dual employment", "other employment", "outside work"]},
-    {"id": "data_protection",       "name": "Data Protection Clause",           "category": "privacy",      "keywords": ["data protection", "personal data", "PDPB", "DPDP Act", "privacy", "GDPR"]},
-    {"id": "board_resolution",      "name": "Board Resolution Authority",       "category": "corporate",    "keywords": ["board resolution", "board of directors", "authorized by board", "resolution passed"]},
-    {"id": "authorized_signatory",  "name": "Authorized Signatory Clause",      "category": "corporate",    "keywords": ["authorized signatory", "authorized to sign", "signing authority", "power of attorney"]},
-    {"id": "share_transfer",        "name": "Share Transfer Restriction",       "category": "corporate",    "keywords": ["share transfer", "transfer of shares", "ROFR", "right of first refusal", "lock-in"]},
-    {"id": "dividend",              "name": "Dividend Policy Clause",           "category": "corporate",    "keywords": ["dividend", "profit distribution", "declared dividend", "interim dividend"]},
-    {"id": "directorship",          "name": "Directorship / Appointment",       "category": "corporate",    "keywords": ["director", "appointment", "removal of director", "managing director", "whole-time director"]},
-    {"id": "audit_clause",          "name": "Audit Rights Clause",              "category": "corporate",    "keywords": ["audit", "right to audit", "inspection", "books of accounts", "financial records"]},
-    {"id": "related_party",         "name": "Related Party Transaction",        "category": "corporate",    "keywords": ["related party", "arm's length", "Section 188", "RPT", "associate company"]},
-    {"id": "security_collateral",   "name": "Security / Collateral Clause",     "category": "finance",      "keywords": ["security", "collateral", "mortgage", "pledge", "charge", "hypothecation"]},
-    {"id": "covenant",              "name": "Covenant / Undertaking Clause",    "category": "finance",      "keywords": ["covenant", "undertaking", "promise", "shall not", "negative covenant"]},
-    {"id": "default_events",        "name": "Events of Default",                "category": "finance",      "keywords": ["event of default", "default", "acceleration", "cross default"]},
-    {"id": "prepayment",            "name": "Prepayment / Foreclosure",         "category": "finance",      "keywords": ["prepayment", "foreclosure", "early repayment", "prepayment penalty"]},
-    {"id": "license_grant",         "name": "License Grant Clause",             "category": "ip",           "keywords": ["license", "licence", "grant", "royalty", "sublicense", "perpetual", "limited license"]},
-    {"id": "source_code_escrow",    "name": "Source Code Escrow",               "category": "ip",           "keywords": ["escrow", "source code", "code deposit", "technology escrow"]},
-    {"id": "sla",                   "name": "Service Level Agreement (SLA)",    "category": "performance",  "keywords": ["SLA", "service level", "uptime", "availability", "response time", "99.9%"]},
-    {"id": "rent_escalation",       "name": "Rent Escalation Clause",           "category": "realestate",   "keywords": ["rent escalation", "rent increase", "annual increase", "CPI", "escalation"]},
-    {"id": "lock_in_lease",         "name": "Lock-in Period (Lease)",           "category": "realestate",   "keywords": ["lock-in", "lock in period", "minimum period", "cannot vacate"]},
-    {"id": "security_deposit",      "name": "Security Deposit Clause",          "category": "realestate",   "keywords": ["security deposit", "refundable deposit", "advance deposit"]},
-    {"id": "dispute_escalation",    "name": "Dispute Escalation Mechanism",     "category": "dispute",      "keywords": ["escalation", "senior management", "escalate", "resolution committee"]},
-    {"id": "liquidated_damages",    "name": "Liquidated Damages Clause",        "category": "liability",    "keywords": ["liquidated damages", "LD clause", "agreed damages", "penalty clause"]},
-    {"id": "anti_corruption",       "name": "Anti-Bribery / Anti-Corruption",   "category": "compliance",   "keywords": ["anti-bribery", "anti-corruption", "Prevention of Corruption Act", "FCPA", "bribe"]},
-    {"id": "change_of_control",     "name": "Change of Control Clause",         "category": "corporate",    "keywords": ["change of control", "acquisition", "merger", "takeover", "change in ownership"]},
-    {"id": "most_favored",          "name": "Most Favoured Nation (MFN)",       "category": "commercial",   "keywords": ["most favoured", "most favored nation", "MFN", "best price", "equal treatment"]},
-    {"id": "exclusivity",           "name": "Exclusivity Clause",               "category": "commercial",   "keywords": ["exclusivity", "exclusive", "sole supplier", "exclusive license", "exclusive distributor"]},
-    {"id": "benchmarking",          "name": "Benchmarking / Market Testing",    "category": "commercial",   "keywords": ["benchmarking", "market testing", "competitive pricing", "benchmark"]},
-    {"id": "step_in_rights",        "name": "Step-In Rights Clause",            "category": "performance",  "keywords": ["step-in", "step in right", "take over", "assume control", "remedy breach"]},
+    {"id": "sla_uptime",             "name": "Service Level Agreement (SLA) & Uptime",      "category": "performance",  "keywords": ["SLA", "service level", "uptime", "availability", "99.9%", "downtime", "latency", "service credit", "MTTR", "response time"]},
+    {"id": "data_protection_dpdp",   "name": "Data Protection & Privacy (DPDP / GDPR)",     "category": "privacy",      "keywords": ["data protection", "personal data", "DPDP Act", "data fiduciary", "data processor", "GDPR", "privacy", "consent", "PII", "data principal"]},
+    {"id": "cybersecurity_certin",   "name": "Cybersecurity & Incident Reporting (CERT-In)", "category": "security",     "keywords": ["cybersecurity", "CERT-In", "incident", "breach", "security incident", "vulnerability", "log retention", "6 hours", "compromise"]},
+    {"id": "ip_ownership_code",      "name": "Software IP & Work-For-Hire Assignment",      "category": "ip",           "keywords": ["intellectual property", "IP", "source code", "copyright", "patent", "work for hire", "invention assignment", "proprietary code", "repository"]},
+    {"id": "software_license_scope",  "name": "Software License Scope & SaaS Restrictions",  "category": "ip",           "keywords": ["license", "licence", "grant", "sublicense", "EULA", "subscription", "named users", "concurrent users", "reverse engineering", "decompilation"]},
+    {"id": "source_code_escrow",     "name": "Source Code Escrow & Repository Rights",      "category": "ip",           "keywords": ["escrow", "source code", "repository", "code deposit", "release condition", "github", "gitlab", "escrow agent"]},
+    {"id": "open_source_governance",  "name": "Open Source Software (OSS) Governance",       "category": "ip",           "keywords": ["open source", "OSS", "GPL", "AGPL", "copyleft", "Apache", "MIT license", "third party software", "viral license"]},
+    {"id": "confidentiality_nda",     "name": "Confidentiality & Trade Secrets (Source Code & APIs)", "category": "ip", "keywords": ["confidential", "non-disclosure", "NDA", "trade secret", "source code", "API key", "proprietary algorithm", "credentials"]},
+    {"id": "limitation_liability_it", "name": "Limitation of Liability & Data Loss Caps",    "category": "liability",   "keywords": ["liability", "limit", "cap", "indirect damages", "consequential damages", "loss of data", "loss of profit", "maximum liability"]},
+    {"id": "ip_indemnification",      "name": "IP Infringement & Data Breach Indemnification","category": "liability",  "keywords": ["indemnify", "indemnification", "hold harmless", "IP infringement", "third-party claim", "data breach liability", "patent claim"]},
+    {"id": "cloud_hosting_dr",       "name": "Cloud Hosting, BCP & Disaster Recovery",      "category": "performance",  "keywords": ["cloud", "hosting", "AWS", "Azure", "GCP", "disaster recovery", "BCP", "backup", "RTO", "RPO", "failover", "data center"]},
+    {"id": "it_audit_pentest",       "name": "IT Audit, Penetration Testing & Compliance",  "category": "compliance",   "keywords": ["audit", "right to audit", "security audit", "penetration testing", "vulnerability assessment", "SOC 2", "ISO 27001", "VAPT"]},
+    {"id": "vendor_transition_exit",  "name": "Vendor Lock-in, De-provisioning & Exit Aid",  "category": "exit",         "keywords": ["transition", "exit assistance", "data migration", "de-provisioning", "vendor lock-in", "data return", "deletion of data"]},
+    {"id": "it_moonlighting",        "name": "IT Moonlighting & Dual Employment Clause",    "category": "employment",   "keywords": ["moonlighting", "dual employment", "side project", "conflict of interest", "outside programming", "freelancing"]},
+    {"id": "tech_non_solicitation",   "name": "Tech Talent Non-Solicitation",                 "category": "restriction",  "keywords": ["non-solicitation", "non solicitation", "poaching", "developers", "engineers", "hire away", "recruit"]},
+    {"id": "termination_it_service", "name": "Termination & Suspension of Cloud/IT Services","category": "exit",        "keywords": ["terminate", "termination", "suspension", "service cut-off", "notice period", "material breach", "immediate termination"]},
+    {"id": "uat_acceptance",         "name": "UAT Acceptance Criteria & Milestones",        "category": "performance",  "keywords": ["UAT", "acceptance criteria", "user acceptance testing", "milestone", "defect severity", "sign-off", "deliverable"]},
+    {"id": "software_maintenance",   "name": "Software Maintenance, Bug Fixes & Patches",  "category": "performance",  "keywords": ["maintenance", "bug fix", "patch", "hotfix", "support tier", "error correction", "software update"]},
+    {"id": "force_majeure_cyber",    "name": "Force Majeure & Cyber Warfare / Telecom Outage","category": "performance","keywords": ["force majeure", "cyber attack", "DDoS", "internet outage", "telecom disruption", "cloud provider outage"]},
+    {"id": "governing_law_tech",     "name": "Governing Law & IT Dispute Arbitration",      "category": "dispute",      "keywords": ["governing law", "jurisdiction", "arbitration", "seat of arbitration", "courts of", "IT dispute"]},
+    {"id": "payment_milestones",      "name": "Tech Milestones & SaaS Subscription Fees",     "category": "financial",    "keywords": ["payment", "invoice", "subscription fee", "milestone payment", "license fee", "overdue", "withholding"]},
+    {"id": "penalty_delay",          "name": "Liquidated Damages / Delay Penalties",         "category": "financial",    "keywords": ["liquidated damages", "penalty", "delay penalty", "late delivery", "service credit"]},
+    {"id": "it_asset_capitalization", "name": "IT Asset & Equipment Security Clause",        "category": "corporate",    "keywords": ["laptop", "company asset", "remote device", "asset return", "MDM", "device security"]},
+    {"id": "anti_bribery_tech",      "name": "Anti-Corruption & Tech Vendor Procurement",    "category": "compliance",   "keywords": ["anti-bribery", "anti-corruption", "procurement", "kickback", "Prevention of Corruption Act", "FCPA"]},
+    {"id": "change_of_control",      "name": "Change of Control & Assignment of Software",  "category": "corporate",    "keywords": ["change of control", "acquisition", "merger", "assignment", "transfer of agreement"]},
 ]
 
 _CLAUSE_NAMES_LIST = "\n".join(
@@ -66,91 +39,68 @@ _CLAUSE_NAMES_LIST = "\n".join(
 )
 
 INDIAN_LAW_CONTEXT = """
-INDIAN CORPORATE & COMMERCIAL LAW FRAMEWORK (Apply where relevant):
+INDIAN INFORMATION TECHNOLOGY & CORPORATE LEGAL FRAMEWORK (Apply where relevant):
 
-COMPANIES ACT 2013 — Key Sections:
-  • Sec 2(68)  – Private Company definition (paid-up capital, share transfer restriction)
-  • Sec 96/100 – AGM obligations; EGM procedures
-  • Sec 117    – Filing of resolutions and agreements with ROC (within 30 days)
-  • Sec 123    – Declaration of dividend; restrictions
-  • Sec 134    – Directors' Responsibility Statement in Board's Report
-  • Sec 135    – Corporate Social Responsibility (CSR) — companies with net profit ≥ ₹5 Cr
-  • Sec 139    – Appointment of Auditor (max 2 terms of 5 yrs)
-  • Sec 149    – Composition of Board; minimum directors; Independent Directors
-  • Sec 152    – Appointment of Directors; DIN requirement
-  • Sec 166    – Duties of Directors (fiduciary duty, no conflict of interest)
-  • Sec 173    – Board Meetings; minimum 4 per year; 7-day notice
-  • Sec 177    – Audit Committee; composition; functions
-  • Sec 179    – Powers of Board of Directors
-  • Sec 184    – Disclosure of Director's interest in contracts
-  • Sec 185    – Prohibition on loans to Directors
-  • Sec 186    – Loans and investments by companies
-  • Sec 188    – Related Party Transactions (RPT); arm's length; Board/shareholder approval
-  • Sec 197    – Managerial remuneration cap (11% of net profit)
-  • Sec 203    – Appointment of Key Managerial Personnel (MD, CS, CFO)
-  • Sec 230    – Compromise and arrangement
-  • Sec 248    – Strike-off of company name
+1. INFORMATION TECHNOLOGY ACT, 2000 (with 2008 Amendments):
+  • Sec 10A   – Validity of contracts formed through electronic means / digital signatures
+  • Sec 43    – Penalty and compensation for damage to computer system / data extraction
+  • Sec 43A   – Compensation for failure to protect Sensitive Personal Data / Information (SPDI)
+  • Sec 65    – Tampering with computer source code documents (imprisonment up to 3 years)
+  • Sec 66/66C– Computer-related offences, hacking, identity theft, unauthorized access
+  • Sec 67/67A– Obscene/unlawful electronic transmission liability
+  • Sec 69/69B– Power to issue directions for interception/monitoring of computer resources
+  • Sec 72/72A– Penalty for breach of confidentiality, privacy, and unauthorized disclosure of personal info
+  • Sec 79    – Safe Harbor & Intermediary Guidelines (due diligence required for tech platforms/cloud hosting)
+  • IT (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021/2023
 
-CONTRACT ACT 1872:
-  • Valid contract requires: offer, acceptance, consideration, free consent, capacity, lawful object
-  • Sec 27 – Void agreements in restraint of trade (non-compete enforceability)
-  • Sec 73 – Compensation for loss or damage caused by breach
-  • Sec 74 – Compensation for breach where penalty stipulated (liquidated damages)
-  • Sec 124-125 – Contract of indemnity
+2. DIGITAL PERSONAL DATA PROTECTION ACT, 2023 (DPDP Act):
+  • Data Fiduciary vs Data Processor obligations in software systems and enterprise IT architectures
+  • Mandatory legitimate purpose, clear notice, and verifiable consent prior to processing digital personal data
+  • Obligations of Significant Data Fiduciaries (SDF): Data Protection Officer (DPO), Independent Data Auditor, DPIA
+  • Cross-border transfer of personal data restrictions and government notification requirements
+  • Mandatory notification of personal data breaches to the Data Protection Board of India and affected data principals
+  • Severe financial penalties up to ₹250 Crores for failure to take reasonable security safeguards to prevent data breaches
 
-LABOUR & EMPLOYMENT LAWS:
-  • Industrial Disputes Act 1947 – notice periods, retrenchment compensation
-  • Payment of Gratuity Act 1972 – 15 days per year, payable after 5 years service
-  • Employees' Provident Funds Act 1952 – 12% employer + 12% employee contribution
-  • ESIC Act 1948 – applicable where gross salary ≤ ₹21,000/month
-  • Maternity Benefit Act 1961 – 26 weeks paid maternity leave
-  • POSH Act 2013 – Sexual harassment policy mandatory for 10+ employees
-  • Code on Wages 2019 – minimum wage, payment timelines
-  • Shops and Establishments Act – varies by state
+3. CERT-In CYBER SECURITY DIRECTIONS (2022 / Current):
+  • Mandatory 6-hour reporting window to CERT-In for all designated cyber incidents (ransomware, data leaks, server breaches)
+  • Mandatory retention of system logs, firewall logs, and user access records within Indian jurisdiction for 180 days
+  • Mandatory NTP time synchronization with National Physical Laboratory (NPL) or NIC clock servers
+  • Cloud and VPN service providers mandatory maintenance of customer identity and activity logs
 
-INTELLECTUAL PROPERTY:
-  • Copyright Act 1957 – original works; employer owns work-for-hire
-  • Patents Act 1970 – inventions; assignability
-  • Trade Marks Act 1999 – registration; licensing
-  • IT Act 2000 – electronic contracts; digital signatures; Sec 43A data protection
+4. SOFTWARE INTELLECTUAL PROPERTY & TRADE SECRETS:
+  • Copyright Act 1957: Computer software programs recognized as "literary works" under Sec 2(o)
+  • Work-for-hire doctrine (Sec 17): Employer/client owns software code developed by employees/contractors only with explicit written assignment
+  • Patents Act 1970 (Sec 3(k)): Non-patentability of computer programs per se, unless tied to novel technical hardware interactions
+  • Open Source Software (OSS) Legal Risks: Copyleft contamination (GPL, AGPL) requiring proprietary source code disclosure
+  • Trade Secret Protection: Breach of confidence enforceable under Indian common law and Contract Act 1872
 
-DATA PROTECTION:
-  • DPDP Act 2023 (Digital Personal Data Protection) – consent, purpose limitation, data fiduciary obligations
-  • IT Rules 2011 (SPDI Rules) – sensitive personal data handling
+5. INDIAN CONTRACT ACT 1872 IN IT AGREEMENTS:
+  • Master Services Agreements (MSA), Statements of Work (SOW), SaaS contracts, and Service Level Agreements (SLA)
+  • Sec 27: Agreements in restraint of trade void (Post-employment non-competes for software developers are void in India; non-disclosure and non-solicitation during employment remain enforceable)
+  • Sec 73 & 74: Damages for breach of tech contract; liquidated damages vs penalty stipulations (uptime credits)
+  • Enforceability of limitation of liability and exclusion of consequential damages/data loss
 
-FINANCIAL & SECURITIES:
-  • SEBI Act 1992 & SEBI (LODR) Regulations – listed company obligations
-  • FEMA 1999 – foreign exchange; FDI; ODI regulations
-  • IBC 2016 (Insolvency & Bankruptcy Code) – default, resolution, liquidation
-  • PMLA 2002 – anti-money laundering; KYC obligations
-  • Prevention of Corruption Act 1988 – anti-bribery
-  • GST Act 2017 – tax on supply of goods/services
-
-ARBITRATION:
-  • Arbitration & Conciliation Act 1996 – domestic/international arbitration; enforcement
-  • MSME Act 2006 – MSME disputes to MSEFC (within 45 days)
+6. COMPANIES ACT 2013 — CORPORATE IT & CYBER GOVERNANCE:
+  • Sec 134(5): Directors' Responsibility Statement regarding adequacy and operating effectiveness of internal financial and IT controls
+  • Sec 177: Audit Committee statutory mandate to review cybersecurity, IT infrastructure risks, and enterprise vulnerability
+  • Sec 188: Related Party Transactions (RPT) in IT procurement, software licensing, and group company technology outsourcing
 """
 
-
 _LEGAL_DOC_SIGNALS = [
-    "agreement", "contract", "deed", "memorandum", "articles", "resolution",
-    "whereas", "hereinafter", "party of the first part", "in witness whereof",
-    "notwithstanding", "pursuant to", "indemnify", "arbitration", "clause",
-    "termination", "confidential", "hereto", "hereunder", "undertaking",
-    "covenant", "representations", "warranties", "obligations", "liability",
-    "consideration", "executed", "signed", "stamp duty", "notarized",
-    "appointment letter", "offer letter", "employment", "salary", "probation",
-    "joining date", "resignation", "service agreement", "scope of work",
+    "agreement", "contract", "deed", "service level", "sla", "software",
+    "saas", "license", "nda", "confidentiality", "intellectual property",
+    "source code", "escrow", "dpdp", "data protection", "cybersecurity",
+    "cert-in", "master services", "statement of work", "sow", "msa",
+    "uptime", "hosting", "cloud", "aws", "azure", "gcp", "liability",
+    "indemnity", "termination", "non-compete", "moonlighting", "acceptance",
+    "uat", "bug", "patch", "vendor", "client", "developer", "engineer",
 ]
 
+
 def _classify_document(text: str) -> str:
-    """
-    Quick keyword-based document type classifier.
-    Returns: "corporate_legal" | "general_legal" | "non_legal"
-    """
+    """Quick keyword-based document type classifier for IT corporate legal documents."""
     lower = text[:3000].lower()
     hits = sum(1 for kw in _LEGAL_DOC_SIGNALS if kw in lower)
-
     if hits >= 4:
         return "corporate_legal"
     if hits >= 2:
@@ -159,85 +109,86 @@ def _classify_document(text: str) -> str:
 
 
 def build_prompt(doc_full: str, local_context: str, law_context: str, doc_type: str) -> str:
-    # ── Clause checklist injected into prompt ─────────────────────────────────
     clause_instruction = f"""
-KNOWN CORPORATE CLAUSE TYPES (check which ones are PRESENT in the document):
+KNOWN IT & CORPORATE CLAUSE TYPES (check which ones are PRESENT in the document):
 {_CLAUSE_NAMES_LIST}
 
-For each clause you identify as PRESENT, include it in the "clauses" array like:
-"Indemnification Clause — [brief description of how it appears in this document]"
+For each clause you identify as PRESENT, include it in the "clauses" array formatted as:
+"Clause Name — [exact meaning/impact as it appears in THIS document]"
 """
 
     if doc_type == "corporate_legal":
         task_block = f"""
-TASK — FULL CORPORATE LEGAL ANALYSIS:
+TASK — FULL IT CORPORATE LEGAL ANALYSIS:
 
-You MUST analyze every section of this document thoroughly.
+You MUST analyze every section of this document thoroughly with specific focus on IT Department, technology operations, cyber law, and corporate compliance:
 
 1. SUMMARY (MANDATORY: minimum 120 words):
-   - What type of document is this? (e.g., Service Agreement, Employment Contract, NDA, Board Resolution)
-   - Who are the parties? What are their roles?
-   - What is the core purpose and subject matter?
-   - What is the contract value / financial consideration (if any)?
-   - What is the duration / term of the agreement?
-   - What jurisdiction / governing law applies?
-   - Any unusual or notable features of this agreement?
+   - What type of IT document is this? (e.g., Master Services Agreement, SaaS Agreement, Software License, Service Level Agreement, Data Processing Agreement, IT Employee NDA & Invention Assignment, Cloud Hosting Contract)
+   - Who are the parties? (e.g., Tech Vendor, Cloud Service Provider, Enterprise Client, IT Department, Developer)
+   - What is the core technology scope, deliverables, or software architecture?
+   - What is the commercial value, subscription fee, or financial consideration?
+   - What is the contract duration, renewal terms, and SLA uptime commitment (e.g., 99.9%)?
+   - What governing law and dispute jurisdiction apply?
+   - Any critical risks, unusual carve-outs, or notable tech governance terms?
 
-2. CLAUSES — identify ALL corporate clauses present (aim for 5-10 clauses):
+2. CLAUSES — identify ALL IT & corporate clauses present (aim for 5-10 clauses):
    Use the clause checklist above. For EACH clause found, write:
    "[Clause Name] — [exact meaning/impact as it appears in THIS document]"
 
-3. OBLIGATIONS — list ALL concrete duties of EACH party (aim for 5-8 items):
-   Be specific: "Party A must X within Y days" not generic statements.
+3. OBLIGATIONS — list ALL concrete technical and legal duties of EACH party (aim for 5-8 items):
+   Be specific: e.g., "Vendor must maintain 99.9% monthly availability and report P1 severity bugs within 1 hour", not generic statements.
 
-4. RISKS — identify REAL risks (aim for 4-6 items):
-   Legal risks, financial risks, operational risks, compliance gaps.
+4. RISKS — identify REAL technology, operational, and legal risks (aim for 4-6 items):
+   Analyze: uncapped data breach liabilities, missing source code escrow, lack of CERT-In/DPDP compliance, ambiguous uptime calculation, one-sided termination, or loss of software IP rights.
    Cite specific clauses or their absence as the source of risk.
 
-5. COMPLIANCE — detailed analysis:
-   - Which Indian laws apply to this document?
-   - Are all statutory requirements met?
-   - Any sections that violate or conflict with Indian law?
-   - What filings/registrations are required (ROC, stamp duty, etc.)?
+5. COMPLIANCE — detailed IT legal compliance analysis:
+   - How does this document align with Indian IT Act 2000/2008 (Sec 43A, 72A, 79)?
+   - DPDP Act 2023 compliance (Data Fiduciary / Data Processor terms, consent, breach reporting)?
+   - CERT-In Cyber Security Directions (6-hour breach reporting, 180-day log retention)?
+   - Intellectual Property & Copyright Act 1957 (software work-for-hire assignment)?
+   - Companies Act 2013 IT governance & internal financial controls?
+   - Are any clauses void or unenforceable (e.g., Sec 27 post-employment non-compete for tech engineers)?
 """
     else:
         task_block = """
-TASK — DOCUMENT ANALYSIS:
+TASK — DOCUMENT ANALYSIS (IT CONTEXT):
 
-This document may not be a corporate/legal agreement, but analyze it fully:
+Analyze this document for Information Technology department relevance, commitments, and legal aspects:
 
 1. SUMMARY (minimum 80 words):
    - What is this document?
-   - What is its purpose?
-   - Who is it for / who created it?
-   - Key information it contains
+   - How does it relate to the IT Department, software development, or corporate tech operations?
+   - Parties, technical scope, and core takeaway.
 
-2. CLAUSES — if any terms, conditions, or commitments exist, list them.
-   If no formal clauses exist, write: []
-
-3. OBLIGATIONS — any duties, commitments, or action items mentioned.
-   If none, write: []
-
-4. RISKS — any practical or legal concerns with this document.
-   If none, write: []
-
-5. COMPLIANCE — if any Indian law applies, mention it.
-   If no specific law is relevant, explain the general legal nature.
+2. CLAUSES — list any terms, conditions, or IT commitments. If none, write: []
+3. OBLIGATIONS — duties or action items mentioned for tech personnel or vendors. If none, write: []
+4. RISKS — practical, cyber, or legal concerns with this document. If none, write: []
+5. COMPLIANCE — relevant Indian IT laws (IT Act, DPDP, CERT-In, Copyright) if applicable.
 """
 
-    return f"""You are a senior Indian corporate lawyer with 20+ years of experience.
-You have deep expertise in Companies Act 2013, Contract Act 1872, employment law, IP law, data protection, and all Indian commercial laws.
-You analyze real documents with precision — you NEVER hallucinate, you NEVER make up facts not in the document.
+    return f"""You are the Principal Corporate Legal Counsel and Head of IT Legal Affairs for enterprise technology corporations, with 20+ years of corporate experience advising IT Departments, Chief Information Officers (CIOs), Chief Information Security Officers (CISOs), General Counsels, and Software Enterprise Executives.
+
+You possess authoritative legal expertise in Indian and International Corporate Laws governing Information Technology:
+- Information Technology Act, 2000 (with 2008 Amendments): Electronic contracts (Sec 10A), sensitive data protection & compensation (Sec 43A), cyber offences & hacking (Sec 65, 66), breach of confidentiality (Sec 72A), and intermediary safe harbor liability (Sec 79).
+- Digital Personal Data Protection Act, 2023 (DPDP Act) & GDPR alignment: Data Fiduciary and Data Processor duties, consent managers, employee tech monitoring, cross-border data transfer restrictions, and mandatory data breach notifications to the Data Protection Board.
+- CERT-In Cyber Security Directions (2022/current): Mandatory 6-hour cyber incident reporting, 180-day system logs retention within Indian jurisdiction, and NTP server time synchronization for all tech infrastructure.
+- Indian Contract Act, 1872 applied to IT: Master Services Agreements (MSA), Statements of Work (SOW), SaaS agreements, Service Level Agreements (SLA uptime, latency, service credits), IP indemnification, limitation of liability & data loss caps, and Section 27 non-compete enforceability for tech employees.
+- Software Intellectual Property & Trade Secrets: Copyright Act 1957 (software code as literary work Sec 2(o), work-for-hire Sec 17), Patents Act 1970 (Sec 3(k) computer-related inventions), Open Source Software (OSS) licenses (GPL copyleft contamination vs Apache/MIT permissive), Source Code Escrow, and proprietary algorithms.
+- Companies Act, 2013 for Tech Operations: Board of Directors oversight on cybersecurity and IT internal controls (Sec 134), Audit Committee supervision of cyber risk and tech audits (Sec 177), and Related Party Transactions in IT procurement and outsourcing (Sec 188).
+
+You analyze IT agreements and technology documents with rigorous legal precision, zero hallucinations, and clear practical business recommendations for IT operations.
 
 {INDIAN_LAW_CONTEXT}
 
 {'=' * 60}
-COMPANIES ACT 2013 — RETRIEVED RELEVANT SECTIONS:
-{law_context or "(Knowledge base not available — rely on embedded law context above)"}
+RETRIEVED STATUTORY CONTEXT:
+{law_context or "(Knowledge base not available — rely on embedded IT law context above)"}
 
 {'=' * 60}
-DOCUMENT TO ANALYZE (full text):
-{local_context or doc_full[:2000]}
+DOCUMENT TO ANALYZE (full text excerpt):
+{local_context or doc_full[:2500]}
 
 {'=' * 60}
 {clause_instruction}
@@ -253,29 +204,29 @@ OUTPUT RULES (NON-NEGOTIABLE):
 4. NO placeholder text like "..." or "[insert]"
 5. Every field MUST be populated based on the actual document
 6. If a field genuinely has no content, use [] for arrays or "" for strings
-7. "summary" MUST be at least 80 words — short summaries are WRONG
+7. "summary" MUST be at least 100 words — short summaries are invalid
 8. The JSON must start with {{ and end with }}
 
 EXACT JSON SCHEMA TO FOLLOW:
 {{
-  "document_type": "<specific type, e.g., 'Service Agreement', 'Employment Contract', 'NDA', 'Board Resolution', 'Invoice', 'General Document'>",
-  "summary": "<Detailed paragraph of minimum 80 words. Explain: what this document is, parties involved, core purpose, financial terms if any, duration, jurisdiction, and any notable features.>",
+  "document_type": "<specific IT document type, e.g., 'Master Services Agreement (MSA)', 'SaaS & Cloud SLA Agreement', 'Software License & EULA', 'Data Processing Agreement (DPA)', 'IT Employee NDA & IP Assignment', 'Cloud Hosting Agreement', 'IT Procurement Contract'>",
+  "summary": "<Detailed paragraph of minimum 100 words analyzing the IT contract, parties, technical deliverables, financial terms, SLA uptime, duration, and legal jurisdiction.>",
   "clauses": [
     "<Clause Name — specific description of how it appears in this exact document>",
     "<Clause Name — specific description>",
     "..."
   ],
   "obligations": [
-    "<Party Name: specific obligation with timeline/condition if mentioned>",
+    "<Party Name: specific IT/legal obligation with timeline/milestone>",
     "..."
   ],
   "risks": [
-    "<Specific risk description — cite the clause or its absence>",
+    "<Specific IT legal or operational risk description — cite the clause or its omission>",
     "..."
   ],
-  "risk_score": <Integer from 0 to 100 representing the overall risk severity of this document>,
-  "critical_risks": "<Detailed paragraph explaining the highest risks in this document (e.g. employment bonds, heavy penalties, IP loss, compliance violations). If no major risks, explain why.>",
-  "compliance": "<Detailed paragraph: which Indian laws apply, are statutory requirements met, required registrations/filings, any legal gaps or violations found.>"
+  "risk_score": <Integer from 0 to 100 representing the overall cyber, legal, and operational risk severity of this document>,
+  "critical_risks": "<Detailed paragraph explaining the highest IT risks (e.g. uncapped breach liability, missing source code escrow, SLA outage penalty gaps, DPDP/CERT-In non-compliance, IP loss in custom code).>",
+  "compliance": "<Detailed paragraph: compliance with Indian IT Act 2000, DPDP Act 2023, CERT-In Cyber Directions, Copyright Act 1957, and Companies Act 2013 IT governance requirements.>"
 }}
 
 OUTPUT ONLY THE JSON. START WITH {{ END WITH }}"""
@@ -333,35 +284,34 @@ def _validate(data: dict, doc_type: str) -> dict:
         return []
 
     summary = str(data.get("summary", "")).strip()
-
     if len(summary.split()) < 20:
         summary = (
             f"{summary} "
-            f"This document has been analyzed for legal content, structure, "
-            f"and compliance with applicable Indian laws."
+            f"This document has been evaluated for Information Technology corporate legal compliance, "
+            f"service level commitments, data protection, and IT operational risk under Indian commercial laws."
         ).strip()
 
     return {
         "document_type": str(data.get("document_type", _infer_doc_type_label(doc_type))).strip()[:100],
-        "summary":       summary[:1500],
-        "clauses":       to_list(data.get("clauses"),     10),
-        "obligations":   to_list(data.get("obligations"),  8),
-        "risks":         to_list(data.get("risks"),        6),
+        "summary":       summary[:2000],
+        "clauses":       to_list(data.get("clauses"),     12),
+        "obligations":   to_list(data.get("obligations"),  10),
+        "risks":         to_list(data.get("risks"),        8),
         "risk_score":    int(''.join(filter(str.isdigit, str(data.get("risk_score", "0")))) or 0),
-        "critical_risks": str(data.get("critical_risks", "")).strip()[:800],
-        "compliance":    str(data.get("compliance", "")).strip()[:800],
+        "critical_risks": str(data.get("critical_risks", "")).strip()[:1000],
+        "compliance":    str(data.get("compliance", "")).strip()[:1000],
     }
 
 
 def _extract_from_text(text: str, doc_type: str) -> dict:
-    def after(label: str, max_chars: int = 600) -> str:
+    def after(label: str, max_chars: int = 800) -> str:
         m = re.search(
             rf'{label}\s*[:\-]?\s*(.+?)(?=\n\s*(?:clauses|obligations|risks|compliance|document_type|summary)\s*[:\-]|\Z)',
             text, re.IGNORECASE | re.DOTALL
         )
         return m.group(1).strip()[:max_chars] if m else ""
 
-    def bullet_list(label: str, limit: int = 8) -> list[str]:
+    def bullet_list(label: str, limit: int = 10) -> list[str]:
         m = re.search(
             rf'{label}\s*[:\-]?\s*([\s\S]+?)(?=\n\s*(?:clauses|obligations|risks|compliance|document_type|summary)\s*[:\-]|\Z)',
             text, re.IGNORECASE
@@ -376,29 +326,29 @@ def _extract_from_text(text: str, doc_type: str) -> dict:
 
     return {
         "document_type": _infer_doc_type_label(doc_type),
-        "summary":       after("summary", 1200) or text[:400],
+        "summary":       after("summary", 1500) or text[:500],
         "clauses":       bullet_list("clauses", 10),
         "obligations":   bullet_list("obligations", 8),
         "risks":         bullet_list("risks", 6),
-        "risk_score":    0,
+        "risk_score":    35,
         "critical_risks": after("critical_risks", 800),
-        "compliance":    after("compliance", 600),
+        "compliance":    after("compliance", 800),
     }
 
 
 def _infer_doc_type_label(doc_type: str) -> str:
     mapping = {
-        "corporate_legal": "Corporate Legal Document",
-        "general_legal":   "Legal / Semi-Legal Document",
-        "non_legal":       "General Document",
+        "corporate_legal": "IT Master Services Agreement / Contract",
+        "general_legal":   "IT Service & Compliance Document",
+        "non_legal":       "General IT Document",
     }
-    return mapping.get(doc_type, "Unknown Document Type")
+    return mapping.get(doc_type, "IT Corporate Document")
 
 
 def _fallback(reason: str) -> dict:
     return {
-        "document_type": "Unknown",
-        "summary":       f"Analysis could not be completed: {reason}",
+        "document_type": "IT Corporate Document",
+        "summary":       f"IT Legal Analysis could not be completed: {reason}",
         "clauses":       [],
         "obligations":   [],
         "risks":         [],

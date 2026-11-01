@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, Scale, ChevronRight } from 'lucide-react'
+import { Menu, ChevronRight, Sparkles } from 'lucide-react'
 import { Toaster } from 'react-hot-toast'
 import { useAuthStore } from '../features/auth/models/authStore'
 import { useUIStore } from '../shared/store/uiStore'
@@ -9,21 +9,19 @@ import Sidebar from './SidebarView'
 import Dashboard from '../features/dashboard/views/DashboardView'
 import DocumentsView from '../features/documents/views/DocumentsView'
 import AdminPanel from '../features/admin/views/AdminPanelView'
-
-const PAGE_COMPONENTS = {
-  dashboard: <Dashboard />,
-  documents: <DocumentsView />,
-  admin_overview: <AdminPanel />,
-  admin_agents: <AdminPanel />,
-  admin_agent_detail: <AdminPanel />
-}
+import QuickTourModal from '../features/onboarding/QuickTourModal'
+import ProfilePageView from '../features/profile/views/ProfilePageView'
+import { LegalBuddyLogo } from '../shared/ui/LegalBuddyLogo'
 
 const PAGE_TITLES = { 
   dashboard: 'Dashboard', 
   documents: 'Documents', 
+  profile: 'Profile Management',
   admin_overview: 'Admin Dashboard',
-  admin_agents: 'All Agents',
-  admin_agent_detail: 'Agent Details'
+  admin_users: 'All Users',
+  admin_user_detail: 'User Details',
+  admin_agents: 'All Users',
+  admin_agent_detail: 'User Details'
 }
 
 const pageVariants = {
@@ -33,10 +31,11 @@ const pageVariants = {
 }
 
 function TopBar() {
-  const { page, setSidebarOpen } = useUIStore()
+  const { page, setPage, setSidebarOpen } = useUIStore()
   const { user } = useAuthStore()
   const { files, activeDocId } = useFileStore()
   const activeDoc = activeDocId ? files.find(f => f.doc_id === activeDocId) : null
+  const isAdmin = user?.role === 'admin'
 
   return (
     <header className="h-16 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-200 dark:border-neutral-800 flex items-center justify-between px-4 md:px-6 shrink-0 sticky top-0 z-20 transition-colors duration-300">
@@ -51,9 +50,9 @@ function TopBar() {
 
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
-            <Scale size={12} className="text-orange-500 shrink-0" />
-            <span className="text-xs font-bold text-gray-600 dark:text-gray-300 font-outfit tracking-wide uppercase">
-              legalbuddy
+            <LegalBuddyLogo size={16} withGlow={false} className="shrink-0" />
+            <span className="text-xs font-bold text-gray-800 dark:text-gray-200 font-outfit tracking-wide flex items-center gap-1">
+              LegalBuddy <span className="text-[10px] text-orange-500 font-semibold ml-1">AI Summarization · IT Corporate Law</span>
             </span>
           </div>
           <ChevronRight size={14} className="text-gray-400 dark:text-gray-600" />
@@ -72,22 +71,62 @@ function TopBar() {
       </div>
 
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-2.5 py-1.5 pr-4 pl-2 rounded-full bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-sm">
+        <button
+          onClick={() => setPage('profile')}
+          className="flex items-center gap-2.5 py-1.5 pr-4 pl-2 rounded-full bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-sm hover:border-orange-500/40 transition-all cursor-pointer group text-left"
+          title="Profile Management Page"
+        >
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-orange-600 to-orange-500 flex items-center justify-center text-xs font-extrabold text-white font-outfit shrink-0">
             {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
           </div>
-          <span className="hidden sm:block text-sm font-semibold text-gray-700 dark:text-gray-300 font-outfit max-w-[120px] truncate">
-            {user?.name || user?.email?.split('@')[0] || 'User'}
-          </span>
-        </div>
+          <div className="flex flex-col">
+            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 font-outfit max-w-[120px] truncate group-hover:text-orange-500 transition-colors">
+              {user?.name || user?.email?.split('@')[0] || 'User'}
+            </span>
+            <span className="text-[9px] text-gray-400 font-poppins">
+              {isAdmin ? 'Admin' : `${user?.daily_doc_count || 0}/5 docs`}
+            </span>
+          </div>
+        </button>
       </div>
     </header>
   )
 }
 
 export default function Layout() {
-  const { page } = useUIStore()
+  const { page, setPage } = useUIStore()
+  const { user } = useAuthStore()
+  const isAdmin = user?.role === 'admin'
   const contentRef = useRef(null)
+
+  const [showTour, setShowTour] = useState(() => {
+    if (isAdmin) return false
+    const userId = user?.user_id || user?.email || 'user'
+    const isNewSignup = localStorage.getItem('lb_new_signup_tour') === 'true'
+    const tourDone = localStorage.getItem(`lb_tour_completed_${userId}`)
+    return isNewSignup && !tourDone
+  })
+
+  const closeTour = () => {
+    const userId = user?.user_id || user?.email || 'user'
+    try {
+      localStorage.removeItem('lb_new_signup_tour')
+      localStorage.removeItem('lb_show_tour')
+      localStorage.setItem(`lb_tour_completed_${userId}`, 'true')
+    } catch {}
+    setShowTour(false)
+  }
+
+  useEffect(() => {
+    // If admin is logged in and starts on dashboard, switch to admin overview
+    if (isAdmin && (page === 'dashboard' || window.location.pathname.startsWith('/admin'))) {
+      if (page === 'dashboard') {
+        setPage('admin_overview')
+      }
+    } else if (!isAdmin && page.startsWith('admin_')) {
+      setPage('dashboard')
+    }
+  }, [isAdmin])
 
   useEffect(() => {
     if (!contentRef.current) return
@@ -98,10 +137,28 @@ export default function Layout() {
     })
   }, [page])
 
+  const renderContent = () => {
+    switch (page) {
+      case 'profile':
+        return <ProfilePageView />
+      case 'documents':
+        return <DocumentsView />
+      case 'admin_overview':
+      case 'admin_users':
+      case 'admin_user_detail':
+      case 'admin_agents':
+      case 'admin_agent_detail':
+        return <AdminPanel />
+      case 'dashboard':
+      default:
+        return <Dashboard />
+    }
+  }
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-white dark:bg-black transition-colors duration-300 relative">
       
-      {/* ── Fixed Toaster for Dark Mode ── */}
+      {/* Fixed Toaster */}
       <Toaster
         position="top-right"
         toastOptions={{
@@ -110,7 +167,10 @@ export default function Layout() {
         }}
       />
 
-      {/* ── Ambient Orbs ── */}
+      {/* Quick Glance Guided Tour Modal — Only for first-time new user signups */}
+      <QuickTourModal isOpen={showTour} onClose={closeTour} />
+
+      {/* Ambient Orbs */}
       <div className="absolute rounded-full pointer-events-none blur-[80px] bg-orange-500 w-[500px] h-[500px] -top-32 -right-24 opacity-10 dark:opacity-5 z-0" />
       <div className="absolute rounded-full pointer-events-none blur-[80px] bg-orange-500 w-[350px] h-[350px] -bottom-32 left-10 opacity-10 dark:opacity-5 z-0" />
 
@@ -121,7 +181,7 @@ export default function Layout() {
         <main
           ref={contentRef}
           className={`flex-1 overflow-x-hidden relative ${
-            ['documents', 'admin_overview', 'admin_agents', 'admin_agent_detail'].includes(page) 
+            ['documents', 'admin_overview', 'admin_users', 'admin_user_detail', 'admin_agents', 'admin_agent_detail'].includes(page) 
               ? 'flex flex-col min-h-0 overflow-hidden' 
               : 'overflow-y-auto pb-[env(safe-area-inset-bottom,16px)]'
           }`}
@@ -135,7 +195,7 @@ export default function Layout() {
               exit="exit" 
               className={`h-full ${page === 'documents' ? 'overflow-hidden' : ''}`}
             >
-              {PAGE_COMPONENTS[page] || <Dashboard />}
+              {renderContent()}
             </motion.div>
           </AnimatePresence>
         </main>

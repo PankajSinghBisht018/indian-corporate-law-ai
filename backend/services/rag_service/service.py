@@ -75,9 +75,10 @@ def _local_context(text: str, top_k: int = 4, max_chars: int = 2500) -> str:
         local_store = LocalFAISSVectorStore(d)
         local_store.add(vecs)
         query = (
-            "legal clauses obligations duties liabilities compliance "
-            "payment termination representations warranties indemnity "
-            "breach penalty dispute jurisdiction governing law"
+            "information technology IT corporate clauses SLA uptime service level "
+            "data protection DPDP cybersecurity CERT-In software license source code escrow "
+            "confidentiality NDA obligations liabilities limitation of liability data loss "
+            "payment milestones termination UAT warranties indemnity dispute governing law"
         )
         q_vec = embed_provider.encode([query])
         _, idxs = local_store.search(q_vec, min(top_k, len(chunks)))
@@ -93,7 +94,7 @@ def _local_context(text: str, top_k: int = 4, max_chars: int = 2500) -> str:
 
 
 async def run_analysis(filepath: str, filename: str, progress_callback=None) -> dict:
-    """Full RAG pipeline orchestration."""
+    """Full RAG pipeline orchestration for IT corporate documents."""
     async def _notify(status: str):
         if progress_callback:
             await progress_callback(status)
@@ -113,7 +114,7 @@ async def run_analysis(filepath: str, filename: str, progress_callback=None) -> 
     await _notify("CHUNKING")
     local_ctx = _local_context(text, top_k=settings.TOP_K_LOCAL, max_chars=settings.CONTEXT_MAX_CHARS)
 
-    logger.info("[STEP 2/4] Searching Companies Act knowledge base...")
+    logger.info("[STEP 2/4] Searching statutory legal knowledge base...")
     await _notify("EMBEDDING")
     law_query = (local_ctx[:400] or text[:400])
     global_store = get_global_vector_store()
@@ -124,7 +125,7 @@ async def run_analysis(filepath: str, filename: str, progress_callback=None) -> 
     logger.info(f"[LAW] Retrieved {len(indices)} sections, {len(law_ctx)} chars")
 
     await _notify("INDEXING")
-    logger.info("[STEP 3/4] Building analysis prompt...")
+    logger.info("[STEP 3/4] Building IT corporate legal analysis prompt...")
     prompt = build_prompt(doc_full=text[:3000], local_context=local_ctx, law_context=law_ctx, doc_type=doc_type)
 
     await _notify("ANALYZING")

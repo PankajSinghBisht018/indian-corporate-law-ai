@@ -1,60 +1,58 @@
-
 export const getSampleDocuments = () => {
   return [
     {
       id: 'sample-1',
-      name: 'Case Law Analysis Template',
+      name: 'IT Master Services Agreement (MSA)',
       type: 'pdf',
       size: '452 KB',
       uploadedAt: new Date('2025-01-15'),
       path: '/Case_Law_Analysis_Template.pdf',
       isSample: true,
-      description: 'Template for analyzing case law and legal precedents'
+      description: 'Comprehensive enterprise IT outsourcing, software engineering deliverables & SLA framework'
     },
     {
       id: 'sample-2',
-      name: 'Compliance Checklist',
+      name: 'IT & DPDP Act Compliance Checklist',
       type: 'pdf',
       size: '328 KB',
       uploadedAt: new Date('2025-01-10'),
       path: '/Compliance_Checklist.pdf',
       isSample: true,
-      description: 'Comprehensive compliance checklist for legal operations'
+      description: 'Digital Personal Data Protection Act 2023 & CERT-In cyber directive checklist for IT departments'
     },
     {
       id: 'sample-3',
-      name: 'Contract Review Guidelines',
+      name: 'SaaS Agreement & SLA Review Guidelines',
       type: 'pdf',
       size: '567 KB',
       uploadedAt: new Date('2025-01-20'),
       path: '/Contract_Review_Guidelines.pdf',
       isSample: true,
-      description: 'Guidelines for reviewing and analyzing contracts'
+      description: 'Standard guidelines for reviewing 99.9% uptime guarantees, latency caps, and data breach liability'
     },
     {
       id: 'sample-4',
-      name: 'Employment Law Guide',
+      name: 'IT Employee NDA & Invention Assignment',
       type: 'pdf',
       size: '421 KB',
       uploadedAt: new Date('2025-01-12'),
       path: '/Employment_Law_Guide.pdf',
       isSample: true,
-      description: 'Quick reference guide for employment law matters'
+      description: 'Protection of proprietary source code, algorithms, repositories, and moonlighting restrictions'
     },
     {
       id: 'sample-5',
-      name: 'Intellectual Property Rights',
+      name: 'Software License & Open Source Governance',
       type: 'pdf',
       size: '634 KB',
       uploadedAt: new Date('2025-01-18'),
       path: '/Intellectual_Property_Rights.pdf',
       isSample: true,
-      description: 'Overview of intellectual property rights and protections'
+      description: 'Enterprise software licensing, GPL copyleft contamination mitigation & commercial IP rights'
     },
   ]
 }
 
-// Get sample document as embedded content
 export const getSampleDocumentContent = async (path) => {
   try {
     const response = await fetch(path)

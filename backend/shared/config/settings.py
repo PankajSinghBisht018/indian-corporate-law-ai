@@ -25,6 +25,20 @@ class Config:
         self.JWT_ALGORITHM = "HS256"
         self.JWT_EXPIRE_HOURS = int(os.getenv("JWT_EXPIRE_HOURS", 24))
 
+        # Admin Accounts & Notification
+        admin_emails_raw = os.getenv("ADMIN_EMAILS", "admin@legalbuddy.com")
+        self.ADMIN_EMAILS = {e.strip().lower() for e in admin_emails_raw.split(",") if e.strip()}
+        self.ADMIN_NOTIFICATION_EMAIL = os.getenv("ADMIN_NOTIFICATION_EMAIL", "hemabisht14888@gmail.com")
+
+        # Google OAuth
+        self.GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+        self.GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+
+        # LinkedIn OAuth
+        self.LINKEDIN_CLIENT_ID = os.getenv("LINKEDIN_CLIENT_ID", "")
+        self.LINKEDIN_CLIENT_SECRET = os.getenv("LINKEDIN_CLIENT_SECRET", "")
+        self.LINKEDIN_REDIRECT_URI = os.getenv("LINKEDIN_REDIRECT_URI", "http://localhost:5173/auth/linkedin/callback")
+
         # File Upload
         self.UPLOAD_BASE_DIR = "uploads"
         self.MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", 50))
@@ -47,10 +61,11 @@ class Config:
         self.FAISS_METADATA_PATH = os.getenv("FAISS_METADATA_PATH", "output/metadata.pkl")
 
         # CORS
-        self.CORS_ORIGINS = os.getenv(
+        raw_origins = os.getenv(
             "CORS_ORIGINS",
-            "http://localhost:3000,http://localhost:5173"
-        ).split(",")
+            "http://localhost:3000,http://localhost:5173,https://localhost:5173"
+        )
+        self.CORS_ORIGINS = [o.strip() for o in raw_origins.split(",") if o.strip()]
 
         # Redis Queue
         self.REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
