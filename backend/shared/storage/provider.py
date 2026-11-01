@@ -13,8 +13,12 @@ class DocumentStorage(Protocol):
 
 
 class LocalDocumentStorage:
-    def __init__(self, base_dir: str = "uploads"):
-        self.base_dir = base_dir
+    def __init__(self, base_dir: str = None):
+        if base_dir is None:
+            backend_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            self.base_dir = os.path.join(backend_root, "uploads")
+        else:
+            self.base_dir = base_dir
 
     def _sanitize_filename(self, name: str) -> str:
         name = os.path.basename(name)
@@ -36,13 +40,24 @@ class LocalDocumentStorage:
 
     async def get_document(self, filepath: str) -> bytes:
         if not os.path.exists(filepath):
-            raise FileNotFoundError(f"File not found: {filepath}")
+            backend_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            candidate = os.path.join(backend_root, filepath)
+            if os.path.exists(candidate):
+                filepath = candidate
+            else:
+                raise FileNotFoundError(f"File not found: {filepath}")
         with open(filepath, "rb") as fh:
             return fh.read()
 
     async def delete_document(self, filepath: str) -> None:
-        if filepath and os.path.exists(filepath):
-            os.remove(filepath)
+        if filepath:
+            if not os.path.exists(filepath):
+                backend_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                candidate = os.path.join(backend_root, filepath)
+                if os.path.exists(candidate):
+                    filepath = candidate
+            if os.path.exists(filepath):
+                os.remove(filepath)
 
 def get_storage_provider() -> DocumentStorage:
     return LocalDocumentStorage()

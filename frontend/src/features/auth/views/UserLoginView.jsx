@@ -13,7 +13,7 @@ import { LegalBuddyLogo } from '../../../shared/ui/LegalBuddyLogo'
 const itFeatures = [
   { icon: Terminal,   label: 'DPDP 2023 & IT Act', sub: 'Statutory compliance for Indian corporate tech teams' },
   { icon: FileCode2,  label: 'Tech Clause Detection', sub: 'SLA (99.9%), Source Code Escrow & Software IP' },
-  { icon: Shield,     label: 'CERT-In & Cyber Risk', sub: 'Vendor liability & mandatory incident reporting' },
+  { icon: Shield,     label: 'IT Employment & Contract Risks', sub: 'Offer letters, bonds, liability caps & indemnity' },
 ]
 
 const IT_ROLES = [
@@ -268,7 +268,7 @@ export default function UserLoginView() {
               <span className="text-sm lg:text-base font-bold text-orange-500 block mt-1 tracking-normal font-outfit">Specialized for IT Corporate Law</span>
             </h1>
             <p className="text-gray-600 dark:text-neutral-400 text-xs lg:text-sm leading-relaxed font-poppins">
-              Enterprise legal intelligence built specifically for Information Technology (IT) departments: Master Services Agreements (MSA), SaaS SLAs (99.9%), software licensing, DPDP Act 2023, and CERT-In cyber compliance.
+              Enterprise legal intelligence built specifically for Information Technology (IT) Corporate Law: Offer Letters &amp; Employment Bonds, Master Services Agreements (MSA), SaaS SLAs, Software Licensing, and DPDP Act 2023 compliance.
             </p>
           </motion.div>
 
@@ -330,7 +330,7 @@ export default function UserLoginView() {
             <p className="text-gray-500 dark:text-neutral-400 text-xs font-poppins">
               {tab === 'signup'
                 ? 'Fill in your IT role and organization for personalized contract review.'
-                : 'Direct access to your contract summaries, DPDP findings, and cyber risk reports.'}
+                : 'Direct access to your contract summaries, legal obligations, and corporate risk reports.'}
             </p>
           </div>
 

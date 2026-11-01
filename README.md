@@ -1,8 +1,8 @@
 <div align="center">
 
-# ⚖️ LegalBuddy — AI-Powered Legal Document Intelligence
+# ⚖️ LegalBuddy — AI-Driven Legal Document Intelligence
 
-**Analyze Indian corporate legal documents in seconds using RAG + a locally-hosted LLM**
+**AI-driven legal document summarization and compliance intelligence, specialized for Information Technology (IT) Corporate Law.**
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-19.0-61DAFB?style=flat-square&logo=react)](https://react.dev/)
@@ -23,26 +23,31 @@
 2. [Key Features](#-key-features)
 3. [How it Works — End-to-End Flow](#-how-it-works--end-to-end-flow)
 4. [Architecture Overview](#-architecture-overview)
-5. [Backend Structure](#-backend-structure--modular-monolith)
+5. [Backend Microservices](#-backend-structure--true-microservices)
 6. [Frontend Structure](#-frontend-structure--feature-sliced-design)
 7. [API Reference](#-api-reference)
 8. [Environment Variables](#-environment-variables)
 9. [Installation & Running](#-installation--running)
-10. [Tech Stack Summary](#-tech-stack-summary)
+10. [User Roles & Permissions](#-user-roles)
+11. [Tech Stack Summary](#-tech-stack-summary)
+12. [Security Features](#-security-features)
+13. [Contributors](#-contributors)
+14. [Troubleshooting](#-troubleshooting)
 
 ---
 
 ## 🎯 What is LegalBuddy?
 
-**LegalBuddy** is a full-stack AI platform for lawyers, compliance officers, and corporate legal teams. It lets you upload a PDF, DOCX, or TXT legal document and instantly receive a structured breakdown of:
+**LegalBuddy** is a full-stack, enterprise-grade AI platform designed specifically for corporate legal counsels, compliance teams, and IT executives. It processes complex IT agreements (SaaS SLAs, NDAs, Master Services Agreements, Cloud Vendor Contracts, Employment Bonds) and provides instant legal intelligence:
 
-- 📝 **Executive Summary** — concise overview of the document
-- 📚 **Key Clauses** — identified clauses, provisions, and sections
-- ✅ **Obligations** — parties' duties and commitments
-- ⚠️ **Risks** — flagged risk areas, liabilities, and ambiguities
-- 🏛️ **Compliance** — analysis against Indian Companies Act 2013 and 50+ corporate law frameworks
+- 📝 **Executive Summary** — Plain-English breakdown tailored for corporate stakeholders.
+- 🎯 **Risk Score & Severity Gauge** — Quantified 0–100 risk score with critical flags for high-liability clauses.
+- ⚠️ **Critical Risks & Liabilities** — Explicit identification of indemnification caps, lock-ins, and breach obligations.
+- 📚 **Key Clauses & Provisions** — Extracted core terms, intellectual property clauses, and termination rights.
+- ✅ **Party Obligations** — Categorized duties and recurring commitments.
+- 🏛️ **Compliance Assessment** — Benchmarked against the **Indian Information Technology Act 2000**, **DPDP Act 2023**, and the **Indian Companies Act 2013**.
 
-The entire RAG pipeline runs **100% locally** using Ollama — no data ever leaves your machine.
+The RAG pipeline operates with **100% local inference** via Ollama — sensitive legal drafts never leave your secure perimeter.
 
 ---
 
@@ -50,17 +55,18 @@ The entire RAG pipeline runs **100% locally** using Ollama — no data ever leav
 
 | Feature | Details |
 |---|---|
-| 🔐 **Secure Auth** | JWT + OTP two-factor login. Google reCAPTCHA v2 on signup/login |
-| 👤 **Role System** | `admin` (platform owner) + `agent` (legal professionals) |
-| 📁 **Document Processing** | PDF (pdfplumber/PyPDF2), DOCX (python-docx), TXT — up to 50 MB |
-| 🤖 **RAG Pipeline** | Local FAISS + all-MiniLM-L6-v2 sentence embeddings |
-| 🧠 **Local LLM** | Ollama-hosted model (qwen3:1.7b or any other compatible model) |
-| ⏳ **Background Processing** | FastAPI `BackgroundTasks` with real-time status updates |
-| ❌ **Cancel/Retry** | Users can stop analysis mid-pipeline and retry failed documents |
-| 📊 **Daily Limits** | Configurable 5-document/day limit per agent with admin override |
-| 🎛️ **Admin Panel** | Approve agents, view stats, reset document limits |
-| 🔔 **Email Notifications** | SMTP credential delivery on agent approval |
-| 🛡️ **Security** | Rate limiting (100/min), CORS, CSP headers, X-Request-ID tracing |
+| 🔐 **Dual Authentication** | Secure Email/Password with bcrypt + **Google Sign-In (OAuth 2.0)** + JWT session tokens. |
+| 👤 **Role-Based Access** | `admin` (Platform Administrator) and `user` (Corporate Legal Professional). |
+| 🧭 **Interactive Guided Tour** | Contextual step-by-step onboarding walkthrough for newly registered users. |
+| 🎨 **Refined Brand Identity** | Dedicated transparent SVG emblem & branding, complete with Dark/Light theme toggle. |
+| 📁 **Document Processing** | Support for PDF and Word (`.pdf`, `.docx`, `.doc`) documents up to 5 MB. |
+| 🤖 **Specialized IT RAG Pipeline** | Pre-indexed FAISS vector knowledge base containing Indian IT and corporate laws with SentenceTransformers (`all-MiniLM-L6-v2`). |
+| 🧠 **Local LLM Engine** | Ollama-hosted models (`qwen3:1.7b`, `llama3`, `mistral`) with zero external API data exposure. |
+| 📊 **Risk Scoring & Metrics** | Real-time calculation of risk score, severity distribution, and critical warnings. |
+| ⏳ **Asynchronous Processing** | Non-blocking execution with FastAPI `BackgroundTasks` and live status polling. |
+| ❌ **Cancel & Retry** | Cancel in-flight analyses anytime or retry failed document processing runs. |
+| 🎛️ **Admin Console** | Comprehensive User Management table, user approval workflow, statistics, and daily limit resets. |
+| 🛡️ **Production Hardening** | Clean separation of dev/prod URLs via `VITE_API_URL`, SPA routing fallbacks, rate limiting, and CORS headers. |
 
 ---
 
@@ -71,80 +77,59 @@ The entire RAG pipeline runs **100% locally** using Ollama — no data ever leav
 │                          DOCUMENT ANALYSIS FLOW                         │
 └─────────────────────────────────────────────────────────────────────────┘
 
-1. USER UPLOADS FILE (PDF / DOCX / TXT)
+1. USER UPLOADS FILE (PDF / DOCX)
          │
          ▼
-2. DOCUMENT SERVICE
-   ├── Validates file type & size (≤ 50 MB, .pdf/.docx/.txt)
-   ├── Checks concurrent task limit (1 active analysis per user)
-   ├── Checks daily document limit (5/day per agent)
-   ├── Saves file to disk (uploads/<user_id>/<username>/<filename>)
-   └── Creates document record in MongoDB (status: UPLOADED)
+2. DOCUMENT SERVICE (:8002 via Gateway :5000)
+   ├── Validates file extension (.pdf, .docx, .doc) & size (≤ 5 MB)
+   ├── Verifies user concurrency & daily upload quotas (e.g. 5/day for users)
+   ├── Persists document in isolated user storage (uploads/<user_id>/<filename>)
+   └── Records document state in MongoDB (status: UPLOADED)
          │
          ▼
-3. RAG SERVICE — triggers BackgroundTask (status: QUEUED → PROCESSING)
+3. RAG SERVICE (:8003 via Gateway :5000) — triggers BackgroundTask
          │
          ▼
 4. INGESTION WORKER (_async_process_document)
    │
-   ├── EXTRACTING  — pdfplumber / PyPDF2 / python-docx text extraction
+   ├── EXTRACTING  — pdfplumber / python-docx extracts full document text
    │
-   ├── CHUNKING    — sliding window (500 words, 100 word overlap)
+   ├── CHUNKING    — Sliding window segmentation (500 words, 100 word overlap)
    │
-   ├── EMBEDDING   — all-MiniLM-L6-v2 via SentenceTransformers
+   ├── EMBEDDING   — SentenceTransformers generates dense embeddings
    │
-   ├── INDEXING    — builds per-document Local FAISS index
+   ├── INDEXING    — Builds transient local FAISS index for document chunks
    │
-   ├── ANALYZING   — queries Global FAISS (Indian Corporate Law KB)
-   │                 → retrieves top-K relevant law sections
-   │                 → builds structured prompt with law context
-   │                 → calls Ollama LLM to generate JSON response
+   ├── ANALYZING   — Queries Global Law Knowledge Base (Indian IT & Corporate Law)
+   │                 → Retrieves top-K statutory references
+   │                 → Synthesizes prompt with specialized corporate legal rules
+   │                 → Local Ollama LLM infers Summary, Risk Score, Clauses & Compliance
    │
-   └── COMPLETED   — stores result in MongoDB, status updated
+   └── COMPLETED   — Analysis saved to MongoDB, document status marked COMPLETED
          │
          ▼
 5. FRONTEND POLLS /result/{doc_id} every 3 seconds
          │
          ▼
-6. DISPLAY: Summary | Clauses | Obligations | Risks | Compliance
-```
-
-### Cancellation Flow
-```
-User clicks "Stop Analysis"
-      │
-      ▼
-POST /api/documents/{doc_id}/cancel
-      │
-      ▼
-MongoDB status → CANCELLED
-      │
-      ▼
-Background worker checks status at next progress step
-      │
-      ▼
-asyncio.CancelledError raised → pipeline halts gracefully
-      │
-      ▼
-UI shows "Retry Analysis" button
+6. DISPLAY: Risk Score | Critical Warnings | Summary | Clauses | Obligations | Compliance
 ```
 
 ---
 
 ## 🏗️ Architecture Overview
 
-LegalBuddy uses a **true Microservices Architecture** — each service is a completely independent FastAPI process with its own port, its own startup, and its own lifecycle. Services communicate only via HTTP through the API Gateway. No Python imports cross service boundaries.
+LegalBuddy operates on a **True Microservices Architecture**. Each service runs as an isolated FastAPI application on dedicated ports, fronted by an API Gateway:
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│              FRONTEND (Vite + React)  :5173                          │
-│              All API calls → http://localhost:5000                   │
+│              FRONTEND (Vite + React 19)                              │
+│              Configured via VITE_API_URL → API Gateway (:5000)       │
 └───────────────────────────┬──────────────────────────────────────────┘
                             │ HTTP
                             ▼
 ┌──────────────────────────────────────────────────────────────────────┐
 │               API GATEWAY  :5000  (FastAPI + httpx proxy)            │
-│  CORS · Security Headers · Request ID Tracing · Route Resolution     │
+│  CORS Handling · Security Headers · Route Forwarding · Health Check  │
 │                                                                      │
 │  /api/auth/*         → auth_service:8001                             │
 │  /api/documents/*    → document_service:8002                         │
@@ -157,28 +142,22 @@ LegalBuddy uses a **true Microservices Architecture** — each service is a comp
 │ AUTH SERVICE│     │ DOCUMENT SERVICE │    │      RAG SERVICE         │
 │   :8001     │     │      :8002       │    │         :8003             │
 │             │     │                  │    │                          │
-│ signup      │     │ upload           │    │ /summarize/{id} trigger  │
-│ login + OTP │     │ list / delete    │    │ /result/{id} poll        │
-│ verify-otp  │     │ serve file       │    │ /cancel                  │
-│ admin panel │     │ reset-stuck      │    │ BackgroundTasks worker   │
+│ User Signup │     │ Upload (.pdf/doc)│    │ /summarize/{id} trigger  │
+│ Local Login │     │ List / Delete    │    │ /result/{id} polling     │
+│ Google Auth │     │ Serve File       │    │ /cancel & retry          │
+│ Admin Users │     │ Limit Enforcement│    │ IT Law FAISS Pipeline    │
 └──────┬──────┘     └────────┬─────────┘    └──────────┬───────────────┘
        │                     │                          │
        └─────────────────────┴──────────────────────────┘
                                      │
               ┌──────────────────────▼──────────────────────┐
               │              SHARED LIBRARY                  │
-              │  (imported by all services, no HTTP calls)   │
-              │                                              │
-              │  shared/config/settings.py                   │
-              │  shared/database/ (MongoDB via Motor)        │
-              │  shared/providers/ (Ollama, FAISS, Embedder) │
-              │  shared/security/ (JWT)                      │
-              │  shared/storage/ (file abstraction)          │
+              │  (shared config, MongoDB repos, providers)  │
               └─────────────────────────────────────────────┘
                                      │
               ┌──────────────────────▼──────────────────────┐
               │         SHARED MONGODB (Motor async)         │
-              │  users collection · documents collection     │
+              │    users · documents · summaries · tickets   │
               └─────────────────────────────────────────────┘
 ```
 
@@ -187,203 +166,156 @@ LegalBuddy uses a **true Microservices Architecture** — each service is a comp
 ## 📁 Backend Structure — True Microservices
 
 ```
-legalbuddy/
+backend/
+├── shared/                              # Shared library imported across services
+│   ├── config/
+│   │   └── settings.py                  # Environment-driven configuration
+│   ├── database/
+│   │   ├── mongo.py                     # Motor async client & database connection
+│   │   ├── user_repo.py                 # User & Admin database operations
+│   │   └── document_repo.py             # Document storage and status lifecycle
+│   ├── providers/
+│   │   ├── llm.py                       # Ollama LLM provider interface
+│   │   ├── embedding.py                 # SentenceTransformer embeddings
+│   │   └── vector_store.py              # FAISS vector store managers
+│   ├── security/
+│   │   └── jwt.py                       # JWT token creation and validation
+│   └── storage/
+│       └── provider.py                  # Local disk storage abstractions
 │
-├── backend/                             # The full backend codebase
-│   ├── shared/                          # Shared Python library — imported by ALL services
-│   │   ├── config/
-│   │   │   └── settings.py              # Centralized config (reads from .env)
-│   │   ├── database/
-│   │   │   ├── mongo.py                 # DatabaseManager (Motor async client)
-│   │   │   ├── document_repo.py         # DocumentRepository (CRUD + status updates)
-│   │   │   └── user_repo.py             # UserRepository (agents + admin operations)
-│   │   ├── providers/
-│   │   │   ├── llm.py                   # OllamaProvider (async, semaphore-limited)
-│   │   │   ├── embedding.py             # SentenceTransformerProvider (singleton)
-│   │   │   └── vector_store.py          # FAISSVectorStore + LocalFAISSVectorStore
-│   │   ├── security/
-│   │   │   └── jwt.py                   # JWT creation & verification (HS256)
-│   │   └── storage/
-│   │       └── provider.py              # File storage abstraction (local disk)
+├── services/
+│   ├── api_gateway/                     ← PORT 5000 (Primary Entrypoint)
+│   │   ├── main.py                      # Gateway reverse proxy + CORS management
+│   │   └── Dockerfile
 │   │
-│   ├── services/                        # Each is a standalone, independently runnable service
-│   │   │
-│   │   ├── api_gateway/                 ← PORT 5000 (public-facing)
-│   │   │   ├── main.py                  # FastAPI app + httpx reverse proxy
-│   │   │   └── Dockerfile
-│   │   │
-│   │   ├── auth_service/                ← PORT 8001
-│   │   │   ├── main.py                  # Own FastAPI app instance
-│   │   │   ├── router.py                # /api/auth/* endpoints
-│   │   │   ├── service.py               # signup, login, OTP, approve_agent, reset_limit
-│   │   │   ├── notification/
-│   │   │   │   └── service.py           # SMTP email (credentials + OTP templates)
-│   │   │   └── Dockerfile
-│   │   │
-│   │   ├── document_service/            ← PORT 8002
-│   │   │   ├── main.py                  # Own FastAPI app instance
-│   │   │   ├── router.py                # /api/documents/* endpoints
-│   │   │   ├── service.py               # file validation, storage, DB record creation
-│   │   │   └── Dockerfile
-│   │   │
-│   │   └── rag_service/                 ← PORT 8003
-│   │       ├── main.py                  # Own FastAPI app instance
-│   │       ├── router.py                # /summarize, /result, /cancel endpoints
-│   │       ├── service.py               # Full RAG pipeline (chunking → embedding → LLM)
-│   │       ├── extraction.py            # PDF/DOCX/TXT text extraction
-│   │       ├── ingestion_worker/
-│   │       │   └── tasks.py             # _async_process_document (BackgroundTask executor)
-│   │       └── analysis/
-│   │           └── prompts.py           # LLM prompt builder, classifier, response parser
+│   ├── auth_service/                    ← PORT 8001
+│   │   ├── main.py                      # Auth FastAPI application
+│   │   ├── router.py                    # Auth, Google OAuth & User Admin endpoints
+│   │   ├── service.py                   # Business logic for auth, registration & users
+│   │   └── notification/service.py      # Notification dispatcher
 │   │
-│   ├── venv/                            # Python virtual environment
-│   ├── requirements.txt                 # All Python dependencies
-│   └── run_dev.py                       # Dev script: starts all 4 services (Windows/Mac/Linux)
+│   ├── document_service/                ← PORT 8002
+│   │   ├── main.py                      # Document management FastAPI app
+│   │   ├── router.py                    # Upload, stream, delete & reset endpoints
+│   │   └── service.py                   # Storage, validation & file streaming
+│   │
+│   └── rag_service/                     ← PORT 8003
+│       ├── main.py                      # RAG pipeline FastAPI app
+│       ├── router.py                    # /summarize, /result & /cancel endpoints
+│       ├── service.py                   # Ingestion orchestrator & LLM prompt caller
+│       ├── extraction.py                # Extract text from PDF and Word documents
+│       ├── analysis/prompts.py          # Structured prompt engineering & JSON schema parser
+│       └── ingestion_worker/tasks.py    # Background task executor
 │
-├── docker-compose.yml                   # Start all 4 services with one command
-└── .env                                 # Shared environment variables
+├── scripts/
+│   ├── build_index.py                   # Generates global FAISS index from IT corporate law
+│   └── __init__.py
+│
+├── run_dev.py                           # Cross-platform development service runner
+├── requirements.txt                     # Backend Python dependencies
+└── .env.example                         # Reference environment variables
 ```
-
-### Key Design Decisions
-
-| Pattern | Usage |
-|---|---|
-| **True Microservices** | Each service has its own `main.py`, port, and process — independently deployable |
-| **API Gateway Proxy** | Single entry point at `:5000`; httpx forwards requests to internal services — frontend unchanged |
-| **Shared Library** | `shared/` package imported by all services — no code duplication, no HTTP overhead for shared concerns |
-| **No Cross-Service Python Imports** | `auth_service` never imports from `document_service` — only the gateway talks HTTP |
-| **Repository Pattern** | `UserRepository` and `DocumentRepository` abstract all DB logic |
-| **Singleton ML Providers** | SentenceTransformer + FAISS loaded once per process and reused |
-| **BackgroundTasks** | FastAPI's native `BackgroundTasks` handles the async RAG pipeline within the RAG service |
-| **Idempotent Worker** | Worker checks status before processing — safe to trigger twice |
-| **Granular Statuses** | `UPLOADED → QUEUED → PROCESSING → EXTRACTING → CHUNKING → EMBEDDING → INDEXING → ANALYZING → COMPLETED / FAILED / CANCELLED` |
-
----
-
-
-
 
 ---
 
 ## 🖥️ Frontend Structure — Feature-Sliced Design
 
-The frontend uses a **Feature-Sliced Design (FSD)** pattern, organizing code by feature domain rather than by technical layer:
-
 ```
 frontend/
 ├── src/
-│   ├── core/                            # App shell & layout
-│   │   ├── App.jsx                      # Root component (auth gate)
-│   │   ├── LayoutView.jsx               # Main layout (Sidebar + TopBar + page routing)
-│   │   ├── SidebarView.jsx              # Sidebar nav, usage meter, theme toggle
-│   │   └── TopBarView.jsx               # Page title + mobile menu button
+│   ├── core/                            # Application framework & layouts
+│   │   ├── App.jsx                      # Root gate (Auth checks & routing)
+│   │   ├── LayoutView.jsx               # App wrapper with responsive sidebars & topbars
+│   │   └── SidebarView.jsx              # Navigation, user quota meter & theme toggle
 │   │
-│   ├── features/                        # Feature domains (self-contained)
-│   │   ├── auth/
+│   ├── features/
+│   │   ├── auth/                        # Authentication & onboarding
 │   │   │   ├── views/
-│   │   │   │   ├── LoginView.jsx        # Login form (email + password + reCAPTCHA)
-│   │   │   │   └── SignupView.jsx       # Signup form (multi-field + reCAPTCHA)
-│   │   │   └── models/
-│   │   │       └── authStore.js         # Zustand store (login, logout, incrementDocCount)
+│   │   │   │   ├── UserLoginView.jsx    # User login & signup with Google OAuth
+│   │   │   │   ├── AdminLoginView.jsx   # Dedicated administrator portal
+│   │   │   │   └── LoginView.jsx        # Unified dispatcher
+│   │   │   └── models/authStore.js      # Session & credentials state
 │   │   │
-│   │   ├── documents/
+│   │   ├── onboarding/
+│   │   │   └── QuickTourModal.jsx       # Guided interactive onboarding tour
+│   │   │
+│   │   ├── profile/
+│   │   │   └── views/
+│   │   │       ├── ProfilePageView.jsx  # User account & organization profile
+│   │   │       └── UserProfileModal.jsx # Quick profile edit modal
+│   │   │
+│   │   ├── documents/                   # Document analysis suite
 │   │   │   ├── views/
-│   │   │   │   ├── DocumentsView.jsx    # Main documents page (upload, list, analysis UI)
-│   │   │   │   └── FileViewerView.jsx   # In-browser file preview (PDF/DOCX/TXT)
-│   │   │   ├── intents/
-│   │   │   │   ├── useFileUpload.js     # Upload logic hook
-│   │   │   │   └── useAnalysisPolling.js # Polling hook for processing status
-│   │   │   └── models/
-│   │   │       └── fileStore.js         # Zustand store (files, activeDoc, summaryData)
+│   │   │   │   ├── DocumentsView.jsx    # Risk Score, clauses & compliance display
+│   │   │   │   └── UploadAreaView.jsx   # Drag & drop file upload with size checks
+│   │   │   └── models/fileStore.js      # Document state & real-time polling
 │   │   │
 │   │   ├── dashboard/
-│   │   │   └── views/
-│   │   │       └── DashboardView.jsx    # Agent home page (recent docs, quick upload)
+│   │   │   └── views/DashboardView.jsx  # Main hub, quick statistics & recent uploads
 │   │   │
-│   │   └── admin/
+│   │   └── admin/                       # Platform administration
 │   │       └── views/
-│   │           ├── AdminPanelView.jsx   # Admin landing (overview + agent table)
-│   │           └── AdminAgentDetailView.jsx # Agent detail (approve / reset limit)
+│   │           ├── AdminPanelView.jsx   # Admin overview dashboard
+│   │           ├── AdminUsersView.jsx   # User management table & approvals
+│   │           └── AdminUserDetailView.jsx # Individual user audit & quota reset
 │   │
-│   ├── shared/                          # Cross-feature shared utilities
+│   ├── shared/
+│   │   ├── ui/
+│   │   │   └── LegalBuddyLogo.jsx       # Custom brand SVG emblem & typography
 │   │   ├── utils/
-│   │   │   └── api.js                   # All API calls (authAPI, documentAPI, summarizeAPI, adminAPI)
-│   │   ├── store/
-│   │   │   └── uiStore.js               # Zustand store (page, theme, sidebarOpen)
-│   │   └── ui/
-│   │       └── Loader.jsx               # ContentLoader skeleton component
+│   │   │   └── api.js                   # Unified API client (supports VITE_API_URL)
+│   │   └── store/uiStore.js             # Theme (Dark/Light) & page state
 │   │
-│   ├── components/                      # Generic reusable UI components
-│   ├── main.jsx                         # React entry point
-│   └── index.css                        # Global styles + Tailwind base
+│   ├── assets/legalbuddy-logo.svg       # Brand vector asset
+│   └── index.css                        # TailwindCSS design tokens & themes
 │
-├── vite.config.js                       # Vite + React + Tailwind plugin config
-├── package.json                         # Dependencies
-└── .env                                 # Frontend environment variables (see below)
+├── vercel.json                          # Production deployment & SPA rewrites configuration
+├── vite.config.js                       # Vite bundler build settings
+└── .env.example                         # Frontend environment variables template
 ```
-
-### Key Design Decisions
-
-| Pattern | Usage |
-|---|---|
-| **Feature-Sliced Design** | Code organized by feature domain (`auth/`, `documents/`, `admin/`) — not by type (`components/`, `hooks/`) |
-| **Zustand Stores** | Three stores: `authStore` (user session), `fileStore` (doc state), `uiStore` (navigation/theme) |
-| **Centralized API** | All HTTP calls go through `src/shared/utils/api.js` — one place to update base URL or auth headers |
-| **Optimistic UI** | `incrementDocCount()` updates the sidebar usage bar immediately on upload without waiting for a server refetch |
-| **Real-time Polling** | Frontend polls `/result/{doc_id}` every 3 seconds while any document is in a processing state |
-| **Case-insensitive Status** | All status comparisons are `.toLowerCase()` — backend sends uppercase (`COMPLETED`), frontend maps correctly |
-| **Page-based Routing** | No React Router — page state is managed by `uiStore.page` (a string key). Enables instant transitions |
 
 ---
 
 ## 🌐 API Reference
 
-### Authentication — `/api/auth`
+### Authentication & Users — `/api/auth`
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `POST` | `/api/auth/signup` | ❌ | Register a new agent (pending approval) |
-| `POST` | `/api/auth/login` | ❌ | Login with email + password + reCAPTCHA |
-| `POST` | `/api/auth/verify-otp` | ❌ | Verify OTP and receive JWT access token |
-| `GET` | `/api/auth/me` | ✅ Bearer | Get current user profile |
-| `GET` | `/api/auth/admin/agents/all` | ✅ Bearer | Admin: list all agents |
-| `GET` | `/api/auth/admin/agents/pending` | ✅ Bearer | Admin: list pending approvals |
-| `POST` | `/api/auth/admin/agents/approve/{id}` | ✅ Bearer | Admin: approve agent + send credentials |
-| `POST` | `/api/auth/admin/agents/reset-limit/{id}` | ✅ Bearer | Admin: reset agent's daily upload count to 0 |
-| `GET` | `/api/auth/admin/stats` | ✅ Bearer | Admin: platform statistics |
+| `POST` | `/api/auth/signup` | Public | Register new user with IT role & specialization |
+| `POST` | `/api/auth/login` | Public | Sign in with email, password & reCAPTCHA |
+| `POST` | `/api/auth/google` | Public | Authenticate or register using Google OAuth |
+| `GET` | `/api/auth/me` | Bearer Token | Retrieve current logged-in user profile |
+| `GET` | `/api/auth/admin/users/all` | Admin Token | List all registered users |
+| `GET` | `/api/auth/admin/users/pending` | Admin Token | List pending user accounts |
+| `POST` | `/api/auth/admin/users/approve/{id}` | Admin Token | Approve user account |
+| `POST` | `/api/auth/admin/users/reset-limit/{id}` | Admin Token | Reset user's daily upload count to 0 |
+| `GET` | `/api/auth/admin/stats` | Admin Token | Platform-wide analytics and usage metrics |
 
 ### Documents — `/api/documents`
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `POST` | `/api/documents/upload` | ✅ Bearer | Upload a document (PDF/DOCX/TXT) |
-| `GET` | `/api/documents` | ✅ Bearer | List all documents for current user |
-| `GET` | `/api/documents/{id}` | ✅ Bearer | Get document metadata |
-| `DELETE` | `/api/documents/{id}` | ✅ Bearer | Delete document + file from disk |
-| `GET` | `/api/documents/{id}/file` | ✅ Bearer | Serve raw file for in-browser preview |
-| `POST` | `/api/documents/{id}/cancel` | ✅ Bearer | Cancel an in-progress analysis |
-| `POST` | `/api/documents/reset-stuck` | ✅ Bearer | Force-fail all stuck documents |
+| `POST` | `/api/documents/upload` | Bearer Token | Upload PDF/Word document (≤ 5 MB) |
+| `GET` | `/api/documents` | Bearer Token | List all uploaded documents for user |
+| `GET` | `/api/documents/{id}` | Bearer Token | Get document metadata & analysis state |
+| `DELETE` | `/api/documents/{id}` | Bearer Token | Delete document and associated disk files |
+| `GET` | `/api/documents/{id}/file` | Bearer Token | Stream file content for preview |
+| `POST` | `/api/documents/{id}/cancel` | Bearer Token | Cancel currently running analysis |
+| `POST` | `/api/documents/reset-stuck` | Bearer Token | Clear stuck processing states |
 
-### Analysis — RAG Service
+### RAG Analysis Service
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `POST` | `/summarize/{id}` | ✅ Bearer | Trigger RAG analysis (queues background task) |
-| `GET` | `/result/{id}` | ✅ Bearer | Poll for analysis result |
-
-### Infrastructure
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/health` | Returns `{ status: "ok", version, services }` |
-| `GET` | `/ready` | Returns `{ status: "ready" }` or 503 |
-| `GET` | `/docs` | Swagger UI (interactive API docs) |
+| `POST` | `/summarize/{id}` | Bearer Token | Start IT Corporate Law RAG analysis pipeline |
+| `GET` | `/result/{id}` | Bearer Token | Poll real-time progress and structured output |
 
 ---
 
 ## ⚙️ Environment Variables
 
-### Backend `.env` (at project root `c:\...\legalbuddy\.env`)
+### Backend Configuration (`backend/.env`)
 
 ```env
 # ── Server ──────────────────────────────────────────────────────
@@ -395,55 +327,41 @@ DEBUG=false
 MONGODB_URL=mongodb://localhost:27017
 MONGODB_DB=legalbuddy
 
-# ── JWT ─────────────────────────────────────────────────────────
-JWT_SECRET=your-very-long-random-secret-here
+# ── JWT Security ────────────────────────────────────────────────
+JWT_SECRET=your-secure-random-secret-key
 JWT_EXPIRE_HOURS=24
 
-# ── Ollama LLM ───────────────────────────────────────────────────
+# ── Ollama Local LLM ─────────────────────────────────────────────
 OLLAMA_BASE_URL=http://127.0.0.1:11434
-OLLAMA_MODEL=qwen3:1.7b        # or llama3, gemma2, mistral, etc.
-OLLAMA_TIMEOUT=120             # seconds to wait before timeout
+OLLAMA_MODEL=qwen3:1.7b
+OLLAMA_TIMEOUT=120
 
-# ── File Storage ─────────────────────────────────────────────────
-MAX_FILE_SIZE_MB=50
-
-# ── RAG / Vector Search ──────────────────────────────────────────
+# ── File Limits & RAG ────────────────────────────────────────────
+MAX_FILE_SIZE_MB=5
 CHUNK_SIZE_WORDS=500
 CHUNK_OVERLAP_WORDS=100
-TOP_K_GLOBAL=5                 # how many law sections to retrieve from global KB
-TOP_K_LOCAL=3                  # how many chunks to retrieve from local document
-CONTEXT_MAX_CHARS=1500
-
-# ── FAISS Knowledge Base ─────────────────────────────────────────
 FAISS_INDEX_PATH=output/faiss_index.bin
 FAISS_METADATA_PATH=output/metadata.pkl
 
-# ── CORS ─────────────────────────────────────────────────────────
-CORS_ORIGINS=http://localhost:3000,http://localhost:5173
-
-# ── reCAPTCHA v2 ─────────────────────────────────────────────────
-# Get yours at: https://www.google.com/recaptcha/admin/create
-RECAPTCHA_SECRET=your-recaptcha-secret-key
-
-# ── Email (SMTP — for agent credential delivery) ─────────────────
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your@gmail.com
-SMTP_PASSWORD=your-app-password
-
-# ── Redis (optional — not required for monolithic mode) ──────────
-REDIS_URL=redis://localhost:6379/0
+# ── CORS Origins ─────────────────────────────────────────────────
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000
 ```
 
-### Frontend `.env` (at `frontend/.env`)
+### Frontend Configuration (`frontend/.env`)
 
 ```env
-# reCAPTCHA v2 site key (public — safe to expose)
-# Get yours at: https://www.google.com/recaptcha/admin/create
+# ── Backend API URL ──────────────────────────────────────────────
+# In local development points to API Gateway:
+VITE_API_URL=http://localhost:5000
+
+# ── Google OAuth 2.0 ──────────────────────────────────────────────
+# Google Cloud Console OAuth Client ID
+VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+
+# ── Google reCAPTCHA v2 ──────────────────────────────────────────
+# Public Site Key
 VITE_RECAPTCHA_SITE_KEY=your-recaptcha-site-key
 ```
-
-> **reCAPTCHA Setup:** Go to [https://www.google.com/recaptcha/admin/create](https://www.google.com/recaptcha/admin/create), select **reCAPTCHA v2 ("I'm not a robot" checkbox)**, add `localhost` as a domain, and copy the **Site Key** into `frontend/.env` and the **Secret Key** into the backend `.env`.
 
 ---
 
@@ -451,159 +369,136 @@ VITE_RECAPTCHA_SITE_KEY=your-recaptcha-site-key
 
 ### Prerequisites
 
-| Tool | Version | Purpose |
-|---|---|---|
-| Python | 3.11+ | Backend runtime |
-| Node.js | 18+ | Frontend build |
-| MongoDB | 6.0+ | Database (local or Atlas) |
-| Ollama | Latest | Local LLM host |
+- **Python**: 3.11+
+- **Node.js**: 18+
+- **MongoDB**: 6.0+ (Local or Atlas)
+- **Ollama**: Installed with model pulled (`ollama pull qwen3:1.7b`)
 
-### 1. Clone & Setup
+### 1. Backend Setup
 
 ```bash
-git clone https://github.com/PankajSinghBisht018/indian-corporate-law-ai.git
-cd legalbuddy
-```
+# Navigate to backend directory
+cd backend
 
-### 2. Backend Setup
-
-```bash
 # Create virtual environment
-python -m venv backend/venv
+python -m venv venv
 
-# Activate it (Windows PowerShell)
-.\backend\venv\Scripts\Activate.ps1
+# Activate virtual environment
+# Windows PowerShell:
+.\venv\Scripts\Activate.ps1
+# macOS/Linux:
+source venv/bin/activate
 
 # Install dependencies
-pip install -r backend/requirements.txt
+pip install -r requirements.txt
 
-# Create your .env file at project root (see Environment Variables section above)
-# Then run the backend
-python run.py
+# Start all microservices together
+python run_dev.py
 ```
 
-The API will start at `http://localhost:5000`. Visit `http://localhost:5000/docs` for interactive Swagger docs.
+API Gateway will start at `http://localhost:5000`. Test health status at `http://localhost:5000/health`.
 
-### 3. Frontend Setup
+### 2. Frontend Setup
 
 ```bash
+# Navigate to frontend directory
 cd frontend
 
 # Install dependencies
 npm install
 
-# Create frontend/.env (see Environment Variables section above)
-
 # Start development server
 npm run dev
 ```
 
-The frontend will start at `http://localhost:5173`.
+Visit the application at `http://localhost:5173`.
 
-### 4. Ollama Setup (Local LLM)
-
-```bash
-# Install Ollama (Windows: https://ollama.ai/download)
-
-# Pull a model — choose one:
-ollama pull qwen3:1.7b       # fast, 1.7B params (default)
-ollama pull llama3            # balanced, 8B params
-ollama pull gemma2:2b         # lightweight alternative
-ollama pull mistral           # strong reasoning
-
-# Ollama runs automatically as a service on http://127.0.0.1:11434
-# Set OLLAMA_MODEL in your .env to match what you pulled
-```
-
-### 5. Build FAISS Knowledge Base (first time)
-
-The global Indian Corporate Law knowledge base must be built once before the RAG pipeline can retrieve law sections:
+### 3. Build FAISS Knowledge Base (One-time step)
 
 ```bash
-# From the project root (with venv active)
-python -m backend.scripts.build_index  # or equivalent ingestion script
+# From backend directory with venv activated
+python -m scripts.build_index --pdf ../act.pdf
 ```
 
-This generates `output/faiss_index.bin` and `output/metadata.pkl` — pointed to by `FAISS_INDEX_PATH` and `FAISS_METADATA_PATH` in `.env`.
+This processes the statutory document and creates `output/faiss_index.bin` and `output/metadata.pkl`.
+
+---
+
+## 👥 User Roles
+
+### User (Corporate Legal Counsel / IT Executive)
+- Registers via Signup form or One-Click Google Sign-In.
+- Welcomed with an interactive Quick Tour explaining features and workflow.
+- Uploads and analyzes agreements (.pdf, .docx, .doc up to 5 MB).
+- Inspects Risk Score gauges, Critical Liability flags, Clause breakdowns, and DPDP/IT Act compliance.
+- Daily usage limit tracking in the navigation sidebar.
+
+### Admin (Platform Administrator)
+- Dedicated Admin Login portal with credentials management.
+- Approves or rejects new user access requests.
+- Reviews user activity, company affiliations, and role designations.
+- Resets daily document upload quotas for specific accounts.
+- Inspects system-wide document and user statistics.
 
 ---
 
 ## 🛠️ Tech Stack Summary
 
 ### Backend
-
-| Layer | Technology | Purpose |
-|---|---|---|
-| **API Framework** | FastAPI 0.115 | Async web framework, OpenAPI docs |
-| **Server** | Uvicorn | ASGI server |
-| **Database** | MongoDB + Motor | Async document store for users & documents |
-| **ORM/Repo** | Custom Repository Pattern | `UserRepository`, `DocumentRepository` |
-| **LLM** | Ollama (local) | Runs models like qwen3, llama3, mistral locally |
-| **Embeddings** | SentenceTransformers (`all-MiniLM-L6-v2`) | Document & law section embedding |
-| **Vector Search** | FAISS | Similarity search over law knowledge base + per-doc index |
-| **Auth** | JWT (HS256) + bcrypt | Token-based auth with password hashing |
-| **OTP** | `pyotp` / custom | Two-factor login verification |
-| **CAPTCHA** | Google reCAPTCHA v2 | Signup/login bot protection |
-| **Background Jobs** | FastAPI `BackgroundTasks` | Async document processing pipeline |
-| **Rate Limiting** | SlowAPI | 100 req/min per IP |
-| **Email** | SMTP via `smtplib` | Agent credential delivery |
-| **PDF Extraction** | pdfplumber + PyPDF2 | Text extraction from PDF files |
-| **DOCX Extraction** | python-docx | Text extraction from Word documents |
-| **Logging** | `python-json-logger` | Structured JSON logs to file + console |
-| **Config** | `python-dotenv` | `.env`-based configuration |
+- **FastAPI 0.115** — High-performance async microservices and API Gateway.
+- **MongoDB & Motor** — Asynchronous NoSQL document store.
+- **Ollama** — Local, privacy-first inference engine.
+- **SentenceTransformers & FAISS** — Vector embeddings and similarity search.
+- **pdfplumber & python-docx** — Reliable text extraction.
+- **SlowAPI** — Rate limiting and traffic throttling.
 
 ### Frontend
-
-| Layer | Technology | Purpose |
-|---|---|---|
-| **Framework** | React 19 | UI component tree |
-| **Build Tool** | Vite 6 | Dev server + production bundler |
-| **Styling** | TailwindCSS 4 | Utility-first CSS |
-| **State Management** | Zustand | Lightweight global stores (auth, files, UI) |
-| **Animations** | Framer Motion | Page transitions, micro-animations |
-| **Icons** | Lucide React | Icon set |
-| **Toast Notifications** | react-hot-toast | Non-blocking user feedback |
-| **CAPTCHA** | react-google-recaptcha | reCAPTCHA v2 widget |
-| **Architecture** | Feature-Sliced Design | Domain-driven folder structure |
-| **Routing** | Store-based (Zustand `uiStore.page`) | No React Router — page as state |
-
----
-
-## 👥 User Roles
-
-### Agent (Legal Professional)
-- Registers via signup form → waits for admin approval
-- Receives temporary password via email on approval
-- Logs in with email + password + OTP
-- Can upload up to **5 documents per day**
-- Can view, analyze, cancel, retry, and delete their own documents
-- Sidebar shows live Daily Usage bar + countdown to reset
-
-### Admin (Platform Owner)
-- Hardcoded email(s) in `auth_service/service.py` are auto-provisioned as admin on first login
-- Can view all registered agents
-- Can approve pending agents (triggers email with credentials)
-- Can reset any agent's daily document limit to 0
-- Can view platform-wide statistics
+- **React 19 & Vite 6** — Modern component framework and build toolchain.
+- **TailwindCSS 4** — Design system and responsive dark/light styling.
+- **Zustand** — Lightweight modular global state management.
+- **@react-oauth/google** — Google Identity OAuth 2.0 integration.
+- **Framer Motion & Lucide Icons** — Micro-interactions and interface icons.
 
 ---
 
 ## 🔒 Security Features
 
-- **JWT tokens** with configurable expiry (default: 24 hours)
-- **bcrypt** password hashing
-- **OTP two-factor authentication** on login
-- **Google reCAPTCHA v2** on signup and login
-- **Rate limiting**: 100 requests/minute per IP via SlowAPI
-- **Security response headers**: `X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`, `Strict-Transport-Security`, `Content-Security-Policy`
-- **Request ID middleware**: Every response carries a unique `X-Request-ID` for tracing
-- **CORS**: Configured per environment via `CORS_ORIGINS` in `.env`
-- **Document ownership validation**: All document routes verify the requesting user owns the document
+- **Local-Only LLM Processing**: No proprietary legal clauses leave the host machine.
+- **bcrypt Password Hashing**: Zero plain-text credentials stored.
+- **JWT Authentication**: Configurable token expiration and bearer headers.
+- **Google reCAPTCHA v2**: Anti-bot challenge on login and signup flows.
+- **File Validation**: Strict MIME-type checking and 5 MB size ceilings.
+- **Scoped User Ownership**: All document operations strictly require matching user IDs.
 
 ---
 
+## 👥 Contributors
+
+This project was built collaboratively by:
+
+| Name | GitHub |
+|---|---|
+| **Kritik Kaushik** | [github.com/KritikKaushik](https://github.com/KritikKaushik) |
+| **Ahana Gupta** | [github.com/AhanaGupta004](https://github.com/AhanaGupta004) |
+| **Pankaj Singh Bisht** | [github.com/PankajSinghBisht018](https://github.com/PankajSinghBisht018) |
+| **Harpreet Singh** | [github.com/harpreetsingh21-cloud](https://github.com/harpreetsingh21-cloud) |
+| **Kamakshi Arora** | [github.com/kamakshi-13](https://github.com/kamakshi-13) |
+| **Lakshya Kansal** | [github.com/Lakshya1126](https://github.com/Lakshya1126) |
+
+---
+
+## 🩺 Troubleshooting
+
+| Issue | Likely Cause | Solution |
+|---|---|---|
+| `Connection refused on port 11434` | Ollama service is not running | Run `ollama serve` in a terminal or launch Ollama app. |
+| `CORS Error on API Call` | Origin mismatch or port issue | Ensure `CORS_ORIGINS` in `backend/.env` contains your frontend URL. |
+| `422 Unprocessable Entity on Signup` | Missing required fields or payload mismatch | Complete all fields including IT designation and organization. |
+| `FAISS index missing error` | Law knowledge base has not been indexed | Run `python -m scripts.build_index` to build `output/faiss_index.bin`. |
+| `Upload rejected` | File size exceeds 5 MB or invalid extension | Verify file is a valid `.pdf`, `.docx`, or `.doc` under 5 MB. |
+
 <div align="center">
 
-Built By Pankaj Singh Bisht
+Built with ❤️ by **Kritik Kaushik**, **Pankaj Singh Bisht**, **Harpreet Singh**, **Ahana Gupta**, **Kamakshi Arora**, **Lakshya Kansal** and Team.
 
 </div>

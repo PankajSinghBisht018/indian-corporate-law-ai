@@ -12,21 +12,21 @@ const TOUR_STEPS = [
     color: 'from-orange-500 to-amber-500',
     title: 'Welcome to LegalBuddy',
     subtitle: 'AI-Driven Legal Document Summarization',
-    desc: 'Specialized legal document summarization and compliance intelligence built specifically for Information Technology (IT) departments: MSAs, SaaS SLAs (99.9%), software licensing, DPDP Act 2023, and CERT-In cyber directives.'
+    desc: 'Specialized legal document summarization and compliance intelligence built specifically for Information Technology (IT) Corporate Law: Offer Letters, Employment Bonds, MSAs, SaaS SLAs, Software Licensing, and DPDP Act 2023.'
   },
   {
     icon: Upload,
     color: 'from-blue-500 to-indigo-500',
-    title: 'Upload IT Contracts & SLAs',
+    title: 'Upload IT Contracts & Agreements',
     subtitle: 'Standard Accounts: 5 Documents Daily Quota',
-    desc: 'Simply drag & drop or click to upload your Master Services Agreements (MSA), SaaS SLAs, Data Processing Addendums (DPA), or tech employment contracts in PDF or Word (.docx) formats.'
+    desc: 'Simply drag & drop or click to upload your IT Offer Letters, Employment Bonds, Master Services Agreements (MSA), SaaS SLAs, or vendor contracts in PDF or Word (.docx) formats.'
   },
   {
     icon: ShieldCheck,
     color: 'from-emerald-500 to-teal-500',
-    title: 'AI Clause & Cyber Risk Engine',
-    subtitle: 'DPDP 2023 & CERT-In Compliance Findings',
-    desc: 'Our system automatically verifies 99.9% uptime commitments, source code escrow, software IP assignment, vendor liability caps, and calculates an instant Cyber Risk Score.'
+    title: 'AI Clause & Legal Risk Engine',
+    subtitle: 'IT Corporate Law & Compliance Findings',
+    desc: 'Our system automatically verifies employment bond terms, notice periods, SLA uptime commitments, software IP assignment, vendor liability caps, and calculates an instant Legal Risk Score.'
   },
   {
     icon: User,

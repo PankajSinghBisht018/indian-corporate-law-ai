@@ -224,9 +224,9 @@ EXACT JSON SCHEMA TO FOLLOW:
     "<Specific IT legal or operational risk description — cite the clause or its omission>",
     "..."
   ],
-  "risk_score": <Integer from 0 to 100 representing the overall cyber, legal, and operational risk severity of this document>,
-  "critical_risks": "<Detailed paragraph explaining the highest IT risks (e.g. uncapped breach liability, missing source code escrow, SLA outage penalty gaps, DPDP/CERT-In non-compliance, IP loss in custom code).>",
-  "compliance": "<Detailed paragraph: compliance with Indian IT Act 2000, DPDP Act 2023, CERT-In Cyber Directions, Copyright Act 1957, and Companies Act 2013 IT governance requirements.>"
+  "risk_score": <Integer from 0 to 100 representing the overall corporate legal and contractual risk severity of this document>,
+  "critical_risks": "<Detailed paragraph explaining the highest corporate legal and contractual risks for IT stakeholders (e.g. employment bond lock-in & penalty enforceability under Indian Contract Act Sec 27, notice period restrictions, uncapped breach liability, missing source code escrow, SLA outage penalty gaps, DPDP non-compliance, software IP loss).>",
+  "compliance": "<Detailed paragraph: compliance with Indian IT Act 2000, Indian Contract Act 1872, DPDP Act 2023, and Companies Act 2013 IT corporate governance requirements.>"
 }}
 
 OUTPUT ONLY THE JSON. START WITH {{ END WITH }}"""

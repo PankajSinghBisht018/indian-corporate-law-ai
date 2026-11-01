@@ -30,9 +30,9 @@ const STATUS = {
 const TABS = [
   { id: 'file',        label: 'Preview',     icon: Eye           },
   { id: 'summary',     label: 'Summary',     icon: Brain         },
-  { id: 'clauses',     label: 'IT Clauses',  icon: BookOpen      },
+  { id: 'clauses',     label: 'Contract Clauses', icon: BookOpen },
   { id: 'obligations', label: 'Obligations', icon: FileText      },
-  { id: 'risks',       label: 'Cyber Risks', icon: AlertTriangle },
+  { id: 'risks',       label: 'Legal Risks', icon: AlertTriangle },
   { id: 'compliance',  label: 'Compliance',  icon: Shield        },
 ]
 
@@ -174,10 +174,10 @@ function AnalysisContent({ summaryData, activeTab, activeDocId, filename }) {
                 <div className="flex-1">
                   <h3 className="font-outfit text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                     <AlertTriangle size={18} className={d.risk_score > 70 ? 'text-red-500' : d.risk_score > 30 ? 'text-yellow-500' : 'text-green-500'} />
-                    IT &amp; Cyber Risk Assessment
+                    Corporate Legal &amp; Contract Risk Assessment
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 font-poppins leading-relaxed">
-                    {d.critical_risks || 'No critical IT risks identified in this document.'}
+                    {d.critical_risks || 'No critical corporate legal or contractual risks identified in this document.'}
                   </p>
                 </div>
                 <div className="flex flex-col items-center justify-center shrink-0 w-28">
@@ -190,16 +190,16 @@ function AnalysisContent({ summaryData, activeTab, activeDocId, filename }) {
                       <span className="text-xl font-bold font-outfit text-gray-900 dark:text-white">{d.risk_score}%</span>
                     </div>
                   </div>
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mt-2">Risk Score</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mt-2">Legal Risk Score</span>
                 </div>
               </div>
-              <ListSection items={d.risks} theme="red" emptyMsg="No general IT risks identified." />
+              <ListSection items={d.risks} theme="red" emptyMsg="No general corporate legal risks identified." />
             </div>
           )}
           {activeTab === 'compliance'   && (
             <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-sm text-blue-900 dark:text-blue-100 transition-colors duration-150 leading-relaxed font-poppins border-l-[3px] border-l-blue-500">
               <h4 className="font-outfit font-bold mb-2 flex items-center gap-1.5 text-blue-700 dark:text-blue-300">
-                <Cpu size={14} /> Indian IT Law &amp; DPDP Compliance Findings
+                <Cpu size={14} /> Indian IT &amp; Corporate Law Compliance Assessment
               </h4>
               <p className="whitespace-pre-wrap">{d.compliance || 'No compliance information available.'}</p>
             </div>

@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import os
 from shared.database.document_repo import DocumentRepository
 from services.rag_service.service import run_analysis
 
@@ -22,6 +23,13 @@ async def _async_process_document(user_id: str, doc_id: str, filepath: str, file
     logger.info("=" * 70)
 
     try:
+        # Resolve path if needed
+        if not os.path.exists(filepath):
+            backend_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+            alt = os.path.join(backend_root, filepath)
+            if os.path.exists(alt):
+                filepath = alt
+
         doc = await DocumentRepository.get_document(doc_id)
         if doc:
             current_status = doc.get("status", "")
