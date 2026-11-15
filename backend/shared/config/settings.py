@@ -74,10 +74,20 @@ class Config:
         # Security / CAPTCHA
         self.RECAPTCHA_SECRET = os.getenv("RECAPTCHA_SECRET", "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe")
 
-        # Razorpay Payment Gateway
+        # Payment Gateways (Razorpay & PhonePe)
         self.RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_YourTestKeyIdHere")
         self.RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "YourRazorpaySecretHere")
         self.RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET", "")
+
+        # PhonePe Payment Gateway (Standard Checkout v2 & UPI QR)
+        self.PHONEPE_CLIENT_ID = os.getenv("PHONEPE_CLIENT_ID", "M23WEKMWJ0T6Z_2611151446")
+        self.PHONEPE_CLIENT_VERSION = os.getenv("PHONEPE_CLIENT_VERSION", "1")
+        self.PHONEPE_CLIENT_SECRET = os.getenv("PHONEPE_CLIENT_SECRET", "OTFmODgzNjItNWFmMy00YTkzLTgwODAtNjdjNjA2YmZkNGM0")
+        self.PHONEPE_MERCHANT_ID = os.getenv("PHONEPE_MERCHANT_ID", "M23WEKMWJ0T6Z")
+        self.PHONEPE_SALT_KEY = os.getenv("PHONEPE_SALT_KEY", "96434309-7796-489d-8924-ab56988a6076")
+        self.PHONEPE_SALT_INDEX = int(os.getenv("PHONEPE_SALT_INDEX", 1))
+        self.PHONEPE_ENV = os.getenv("PHONEPE_ENV", "UAT").upper()
+        self.DEFAULT_PAYMENT_GATEWAY = os.getenv("DEFAULT_PAYMENT_GATEWAY", "phonepe").lower()
 
 _settings = Config()
 

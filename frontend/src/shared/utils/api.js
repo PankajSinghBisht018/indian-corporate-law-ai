@@ -131,8 +131,28 @@ export const summarizeAPI = {
 export const paymentAPI = {
   getPlans: () => req('/api/payments/plans'),
   getSubscription: () => req('/api/payments/subscription'),
-  createOrder: (planId = 'pro_monthly') => req('/api/payments/create-order', { method: 'POST', body: JSON.stringify({ plan_id: planId }) }),
-  verifyPayment: (payload) => req('/api/payments/verify', { method: 'POST', body: JSON.stringify(payload) }),
+  createOrder: (planId = 'pro_monthly', gateway = null, redirectUrl = null) => 
+    req('/api/payments/create-order', { 
+      method: 'POST', 
+      body: JSON.stringify({ plan_id: planId, gateway, redirect_url: redirectUrl }) 
+    }),
+  createPhonePeOrder: (planId = 'pro_monthly', redirectUrl = null) => 
+    req('/api/payments/phonepe/create-order', { 
+      method: 'POST', 
+      body: JSON.stringify({ plan_id: planId, redirect_url: redirectUrl }) 
+    }),
+  verifyPayment: (payload) => 
+    req('/api/payments/verify', { 
+      method: 'POST', 
+      body: JSON.stringify(payload) 
+    }),
+  verifyPhonePe: (merchantTransactionId, simulatedSuccess = false) => 
+    req('/api/payments/phonepe/verify', { 
+      method: 'POST', 
+      body: JSON.stringify({ merchant_transaction_id: merchantTransactionId, simulated_success: simulatedSuccess }) 
+    }),
+  getUpiQr: (planId = 'pro_monthly') => 
+    req(`/api/payments/upi-qr?plan_id=${planId}`),
   getHistory: () => req('/api/payments/history')
 }
 

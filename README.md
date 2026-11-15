@@ -8,7 +8,7 @@
 [![React](https://img.shields.io/badge/React-19.0-61DAFB?style=flat-square&logo=react)](https://react.dev/)
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python)](https://www.python.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Motor-47A248?style=flat-square&logo=mongodb)](https://www.mongodb.com/)
-[![Razorpay](https://img.shields.io/badge/Razorpay-Payment%20Gateway-02042B?style=flat-square&logo=razorpay)](https://razorpay.com/)
+[![PhonePe](https://img.shields.io/badge/PhonePe-Payment%20Gateway%20v2-5f259f?style=flat-square)](https://www.phonepe.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker)](https://www.docker.com/)
 [![Ollama](https://img.shields.io/badge/Ollama-Local%20LLM-black?style=flat-square)](https://ollama.ai/)
 [![FAISS](https://img.shields.io/badge/FAISS-Vector%20Search-blue?style=flat-square)](https://faiss.ai/)
@@ -61,7 +61,7 @@ The RAG pipeline operates with **local & cloud LLM inference** via Ollama — se
 
 | Feature | Details |
 |---|---|
-| 💳 **Razorpay Payment Gateway** | Fully integrated subscription billing via Razorpay Standard Checkout SDK. Supports UPI (Google Pay, PhonePe, Paytm), Credit/Debit Cards, and NetBanking with secure HMAC-SHA256 signature verification. |
+| 🟣 **PhonePe Payment Gateway (v2 Checkout)** | Fully integrated PhonePe PG with native **Official Dynamic UPI QR Code**, in-page full-size checkout modal, and automated background real-time status verification. Supports all major UPI apps (PhonePe, Google Pay, Paytm, BHIM, CRED) and cards with automated Pro activation. |
 | 📦 **Tiered Subscription Plans** | **Basic (Free)** with 5 daily document uploads and **Pro Subscription (₹199 / month)** with unlimited document analyses and priority AI processing. |
 | 🔐 **Dual Authentication** | Secure Email/Password with bcrypt + **Google Sign-In (OAuth 2.0)** + JWT session tokens + Master OTP bypass (`999888`) for rapid testing. |
 | 👤 **Granular Role & Tier Hierarchy** | Clean distinction between Platform **Administrators**, **Pro Subscribers** (Paid), and **Standard Users** (Free). |
@@ -96,13 +96,14 @@ LegalBuddy provides two straightforward tiers configured for individuals, legal 
 ```
 
 ### Payment & Verification Workflow:
-1. User clicks **"Upgrade to Pro (₹199 / mo)"** on the Frontend.
-2. Frontend calls `POST /api/payments/create-order` via Gateway (`:5000` → Payment Service `:8004`).
-3. Payment service contacts **Razorpay API** (`https://api.razorpay.com/v1/orders`) to generate an official order for `19900` paise (₹199.00).
-4. Razorpay Standard Checkout opens in the browser. User completes payment via UPI, Card, or NetBanking.
-5. On success, the client sends `razorpay_order_id`, `razorpay_payment_id`, and `razorpay_signature` to `POST /api/payments/verify`.
-6. Payment service verifies the cryptographic **HMAC-SHA256 signature** against `RAZORPAY_KEY_SECRET`.
-7. Once verified:
+1. User clicks **"Pay with PhonePe / UPI QR (₹199)"** on the Frontend.
+2. Payment Service (`:8004`) initializes an order via **PhonePe Standard Checkout v2** (`/checkout/v2/pay`) using OAuth credentials (`client_id`, `client_secret`, `client_version`).
+3. An in-page, full-size **PhonePe Official Checkout Modal** renders the live PhonePe checkout screen containing the **authentic, dynamic PhonePe UPI QR Code** along with a countdown timer and order details.
+4. User scans the on-screen PhonePe QR Code using **PhonePe**, **Google Pay**, **Paytm**, or **BHIM**, or uses the "Fullscreen" button to open the checkout page in a browser tab.
+5. **Zero Manual Action Required**:
+   - The frontend modal runs an automated real-time background detector polling the backend every 2.5 seconds.
+   - The moment PhonePe confirms the payment, the modal automatically transitions to a green **"Payment Successful!"** state, refreshes the user session, and closes.
+6. Once verified:
    - Account upgraded: `subscription_tier: "pro"`, `is_unlimited: True`, `subscription_expiry: (now + 30 days)`.
    - Payment audit entry created in the `payments` MongoDB collection.
    - User immediately gets unmetered access with **PRO** badge.
@@ -182,8 +183,8 @@ LegalBuddy operates on a **True Microservices Architecture**. Each service is an
 │ AUTH SERVICE│     │ DOCUMENT SERVICE │      │   RAG SERVICE    │        │ PAYMENT SERVICE  │
 │    :8001    │     │      :8002       │      │      :8003       │        │      :8004       │
 │             │     │                  │      │                  │        │                  │
-│ User Signup │     │ Upload (.pdf/doc)│      │ Ingestion Worker │        │ Razorpay Orders  │
-│ JWT Sessions│     │ List / Stream    │      │ Chunking & Embed │        │ Signature Verify │
+│ User Signup │     │ Upload (.pdf/doc)│      │ Ingestion Worker │        │ PhonePe Checkout │
+│ JWT Sessions│     │ List / Stream    │      │ Chunking & Embed │        │ OAuth & Verify   │
 │ Google OAuth│     │ Quota Checking   │      │ FAISS Law Search │        │ 30-Day Pro Sub   │
 │ Admin Mgmt  │     │ Storage Provider │      │ Ollama LLM Agent │        │ Billing History  │
 └──────┬──────┘     └────────┬─────────┘      └────────┬─────────┘        └────────┬─────────┘
@@ -246,10 +247,10 @@ backend/
 │   │   ├── analysis/prompts.py          # Corporate legal rules & JSON prompt schemas
 │   │   └── ingestion_worker/tasks.py    # Self-healing background worker
 │   │
-│   └── payment_service/                 ← PORT 8004 (Razorpay Integration)
+│   └── payment_service/                 ← PORT 8004 (PhonePe Payment Gateway)
 │       ├── main.py                      # Payment FastAPI app
-│       ├── router.py                    # /plans, /create-order, /verify, /history
-│       ├── service.py                   # Razorpay API client + HMAC SHA-256 verification
+│       ├── router.py                    # /plans, /create-order, /verify, /upi-qr, /history
+│       ├── service.py                   # PhonePe Standard Checkout v2 & OAuth Client
 │       └── __init__.py
 │
 ├── scripts/
@@ -277,9 +278,9 @@ frontend/
 │   │   └── TopBarView.jsx               # Header with breadcrumbs & PRO indicator
 │   │
 │   ├── features/
-│   │   ├── subscription/                # Razorpay Payments & Subscriptions
+│   │   ├── subscription/                # PhonePe Payments & Subscriptions
 │   │   │   └── views/
-│   │   │       └── PricingView.jsx      # Free vs. Pro comparison, Razorpay checkout, receipts
+│   │   │       └── PricingView.jsx      # Free vs. Pro comparison, PhonePe embedded modal & auto-verification
 │   │   │
 │   │   ├── auth/                        # Authentication & onboarding
 │   │   │   ├── views/
@@ -316,8 +317,7 @@ frontend/
 │   │   ├── ui/
 │   │   │   └── LegalBuddyLogo.jsx       # Custom brand SVG emblem & typography
 │   │   ├── utils/
-│   │   │   ├── api.js                   # Unified API client (supports VITE_API_URL & paymentAPI)
-│   │   │   └── razorpay.js              # Dynamic Razorpay SDK script loader
+│   │   │   └── api.js                   # Unified API client (supports VITE_API_URL & paymentAPI)
 │   │   └── store/uiStore.js             # Theme (Dark/Light) & page state
 │   │
 │   ├── assets/legalbuddy-logo.svg       # Brand vector asset
@@ -339,8 +339,12 @@ frontend/
 |---|---|---|---|
 | `GET` | `/api/payments/plans` | Public | List available subscription tiers (Basic Free & Pro ₹199) |
 | `GET` | `/api/payments/subscription` | Bearer Token | Current user active plan, days remaining, and unmetered status |
-| `POST` | `/api/payments/create-order` | Bearer Token | Generate a Razorpay order (`plan_id="pro_monthly"`, `19900` paise) |
-| `POST` | `/api/payments/verify` | Bearer Token | Verify HMAC-SHA256 signature and activate 30-day Pro plan |
+| `POST` | `/api/payments/create-order` | Bearer Token | Create PhonePe Checkout v2 order with dynamic UPI QR & hosted URL |
+| `POST` | `/api/payments/verify` | Bearer Token | Background auto-verification via PhonePe Status API; activates 30-day Pro |
+| `POST` | `/api/payments/phonepe/create-order` | Bearer Token | Dedicated PhonePe order creation endpoint |
+| `POST` | `/api/payments/phonepe/verify` | Bearer Token | Dedicated PhonePe verification and subscription activation endpoint |
+| `GET` | `/api/payments/upi-qr` | Bearer Token | Dynamic UPI deep link and QR code for direct scan |
+| `POST` | `/api/payments/phonepe/webhook` | Public | Server-to-server callback notification handler from PhonePe |
 | `GET` | `/api/payments/history` | Bearer Token | User's billing receipts and transaction history |
 
 ### Authentication & Users — `/api/auth`
@@ -401,10 +405,15 @@ MASTER_OTP=999888
 ADMIN_EMAILS=admin@legalbuddy.com
 ADMIN_NOTIFICATION_EMAIL=admin@legalbuddy.com
 
-# ── Razorpay Payment Gateway ────────────────────────────────────
-RAZORPAY_KEY_ID=rzp_test_TMZrVv7SZehGdG
-RAZORPAY_KEY_SECRET=uE8OirgLLO9xQynEicEmUXXK
-RAZORPAY_WEBHOOK_SECRET=
+# ── PhonePe Payment Gateway (Standard Checkout v2 & UPI QR) ──
+DEFAULT_PAYMENT_GATEWAY=phonepe
+PHONEPE_CLIENT_ID=M23WEKMWJ0T6Z_2611151446
+PHONEPE_CLIENT_VERSION=1
+PHONEPE_CLIENT_SECRET=OTFmODgzNjItNWFmMy00YTkzLTgwODAtNjdjNjA2YmZkNGM0
+PHONEPE_MERCHANT_ID=M23WEKMWJ0T6Z
+PHONEPE_SALT_KEY=96434309-7796-489d-8924-ab56988a6076
+PHONEPE_SALT_INDEX=1
+PHONEPE_ENV=UAT
 
 # ── Ollama Local / Cloud LLM ────────────────────────────────────
 OLLAMA_BASE_URL=http://127.0.0.1:11434
@@ -437,8 +446,8 @@ VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 # ── Google reCAPTCHA v2 ──────────────────────────────────────────
 VITE_RECAPTCHA_SITE_KEY=6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI
 
-# ── Razorpay Client Key (Public Key ID) ──────────────────────────
-VITE_RAZORPAY_KEY_ID=rzp_test_TMZrVv7SZehGdG
+# ── Payment Gateway Selection ────────────────────────────────────
+VITE_DEFAULT_PAYMENT_GATEWAY=phonepe
 ```
 
 ---
@@ -523,7 +532,7 @@ LegalBuddy supports three distinct account levels:
 | Role / Tier | Quota | Badges | Privileges |
 |---|---|---|---|
 | 🛡️ **Platform Administrator** | **Unlimited** | `ADMIN` (Purple) | Full access to Admin Console, user management, limit resets, role promotions, and platform metrics. |
-| ⭐ **Pro Subscriber** | **Unlimited** | `PRO USER` (Orange/Emerald) | **Unlimited** document uploads, priority AI queue, ICA Sec 27 enforceability checking, full PDF/DOCX reports. Activated via ₹199/month Razorpay checkout. |
+| ⭐ **Pro Subscriber** | **Unlimited** | `PRO USER` (Orange/Emerald) | **Unlimited** document uploads, priority AI queue, ICA Sec 27 enforceability checking, full PDF/DOCX reports. Activated via ₹199/month PhonePe checkout. |
 | 👤 **Standard User** | **5 Docs / Day** | `STANDARD` (Blue) | 5 Document uploads per day, core clause extraction, risk scoring. Can upgrade anytime to Pro. |
 
 ---
@@ -533,7 +542,7 @@ LegalBuddy supports three distinct account levels:
 ### Backend
 - **FastAPI 0.115** — High-performance async microservices and API Gateway.
 - **MongoDB & Motor** — Asynchronous NoSQL document store with dedicated `payment_orders` and `payments` collections.
-- **Razorpay SDK & HMAC** — Cryptographic payment order generation and webhook signature verification.
+- **PhonePe Payment Gateway v2 SDK** — OAuth client credentials, dynamic UPI QR generation, and server-to-server status verification.
 - **Ollama** — Local, privacy-first LLM inference engine.
 - **SentenceTransformers & FAISS** — Dense semantic embeddings (`all-MiniLM-L6-v2`) and vector search.
 - **pdfplumber & python-docx** — Reliable document text extraction.
@@ -541,7 +550,7 @@ LegalBuddy supports three distinct account levels:
 
 ### Frontend
 - **React 19 & Vite 6** — Modern component framework and build toolchain.
-- **Razorpay Checkout SDK** — Standard checkout modal with UPI, Cards, and NetBanking.
+- **PhonePe Checkout Experience** — Seamless, in-page full-size modal with real-time background auto-status detection.
 - **TailwindCSS 4** — Unified dark/light design system with custom brand tokens.
 - **Zustand** — Lightweight modular global state (`authStore`, `fileStore`, `uiStore`).
 - **@react-oauth/google** — Google Identity OAuth 2.0 integration.
@@ -552,7 +561,7 @@ LegalBuddy supports three distinct account levels:
 ## 🔒 Security Features
 
 - **Local LLM Privacy**: Sensitive corporate IT agreements stay strictly within the local host environment.
-- **HMAC-SHA256 Cryptographic Verification**: All Razorpay transactions verified against secret keys before subscription activation.
+- **PhonePe SHA256 & OAuth Tokens**: All PhonePe payment orders and status queries authenticated via secure OAuth 2.0 and SHA256 cryptographic verification.
 - **bcrypt Password Hashing**: Zero plain-text credentials stored in MongoDB.
 - **JWT Authentication**: Configurable token expiration and bearer headers.
 - **Master OTP Bypass (`999888`)**: Sandboxed bypass code for development and testing without SMTP dependency.
@@ -579,8 +588,8 @@ This project was built collaboratively by:
 
 | Issue | Likely Cause | Solution |
 |---|---|---|
-| `Payment modal doesn't open` | Razorpay script blocked or key missing | Ensure `VITE_RAZORPAY_KEY_ID` in `frontend/.env` is set and network connection allows `checkout.razorpay.com`. |
-| `Payment verification failed` | Secret mismatch in backend | Verify `RAZORPAY_KEY_SECRET` in `backend/.env` matches your Razorpay dashboard key. |
+| `Payment modal doesn't open` | PhonePe API credentials missing or invalid | Ensure `PHONEPE_CLIENT_ID` and `PHONEPE_CLIENT_SECRET` in `backend/.env` are correctly configured. |
+| `Payment verification pending` | In-flight transaction or waiting for UPI authorization | Wait a few seconds for background poller to auto-complete, or use Fullscreen simulator in UAT mode. |
 | `Connection refused on port 11434` | Ollama service is not running | Run `ollama serve` in a terminal or launch the Ollama app. |
 | `CORS Error on API Call` | Origin mismatch or port issue | Ensure `CORS_ORIGINS` in `backend/.env` contains your frontend URL. |
 | `Upload rejected / Limit reached` | 5 docs daily cap on Basic Free plan | Upgrade to Pro (₹199/mo) via the Plans & Pricing tab for unlimited uploads. |
