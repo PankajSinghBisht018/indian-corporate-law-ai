@@ -34,14 +34,29 @@ async def _handle_upload(file: UploadFile, authorization: Optional[str]) -> dict
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
 
     settings = get_settings()
+    email = user.get("email", "").lower()
     is_admin = (
         user.get("role") == "admin" 
-        or user.get("email", "").lower() in settings.ADMIN_EMAILS
-        or user.get("is_unlimited") is True
+        or email in settings.ADMIN_EMAILS
     )
 
-    # Requirement: 5 documents limit for regular user; Unlimited for admin
-    if not is_admin:
+    tier = (user.get("subscription_tier") or "free").lower()
+    is_pro = tier in ["pro", "paid", "premium"]
+    if is_pro and user.get("subscription_expiry"):
+        try:
+            exp_str = str(user.get("subscription_expiry")).replace("Z", "+00:00")
+            exp_dt = datetime.fromisoformat(exp_str)
+            if exp_dt.tzinfo is None:
+                exp_dt = exp_dt.replace(tzinfo=timezone.utc)
+            if exp_dt < datetime.now(timezone.utc):
+                is_pro = False
+        except Exception:
+            pass
+
+    has_unlimited_access = is_admin or is_pro or user.get("is_unlimited") is True
+
+    # Quota check: 5 documents limit for Basic Free; Unlimited for Admin and Pro subscribers
+    if not has_unlimited_access:
         limit = 5
         current_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         current_count = user.get("daily_doc_count", 0)
@@ -55,10 +70,11 @@ async def _handle_upload(file: UploadFile, authorization: Optional[str]) -> dict
         if current_count >= limit:
             raise HTTPException(
                 status.HTTP_403_FORBIDDEN, 
-                f"Document upload limit reached ({limit} documents maximum for User accounts). Ask your Admin to reset your limit from the Admin Panel, or sign in as Admin for unlimited uploads."
+                "Document upload limit reached (5 documents maximum for Basic Free accounts). Upgrade to LegalBuddy Pro (₹199/month) for unlimited analyses, deep contract risk scoring, and priority AI processing."
             )
 
         await UserRepository.increment_daily_doc_count(user_id, current_date)
+
 
     active_statuses = ["QUEUED", "PROCESSING", "EXTRACTING", "CHUNKING", "EMBEDDING", "INDEXING", "ANALYZING"]
     collection = DocumentRepository.get_collection()

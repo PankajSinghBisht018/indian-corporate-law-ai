@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { RotateCcw, Shield, ShieldAlert, User, CheckCircle2, Trash2 } from 'lucide-react'
+import { RotateCcw, Shield, ShieldAlert, User, CheckCircle2, Trash2, Sparkles } from 'lucide-react'
 import { useUIStore } from '../../../shared/store/uiStore'
 import { adminAPI } from '../../../shared/utils/api'
 import toast from 'react-hot-toast'
@@ -91,7 +91,8 @@ export default function AdminUsers({ users = [], setSelectedUser, fetchData }) {
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-neutral-800">
                 {users.map((u) => {
-                  const isAdmin = u.role === 'admin' || u.is_unlimited === true
+                  const isAdmin = u.role === 'admin'
+                  const isPro = u.subscription_tier === 'pro'
                   const isBusy = busyId === u.id
 
                   return (
@@ -119,6 +120,10 @@ export default function AdminUsers({ users = [], setSelectedUser, fetchData }) {
                           <span className="inline-flex items-center gap-1 bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[11px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider font-outfit">
                             <Shield size={12} /> Admin
                           </span>
+                        ) : isPro ? (
+                          <span className="inline-flex items-center gap-1 bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/30 text-[11px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider font-outfit">
+                            <Sparkles size={12} /> Pro User
+                          </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[11px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider font-outfit">
                             <User size={12} /> Standard
@@ -128,8 +133,12 @@ export default function AdminUsers({ users = [], setSelectedUser, fetchData }) {
 
                       <td className="px-6 py-4">
                         {isAdmin ? (
-                          <span className="text-xs font-bold text-green-600 dark:text-green-400 font-outfit">
-                            Unlimited Uploads
+                          <span className="text-xs font-bold text-purple-600 dark:text-purple-400 font-outfit">
+                            Admin • Unlimited
+                          </span>
+                        ) : isPro ? (
+                          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-outfit flex items-center gap-1">
+                            <CheckCircle2 size={13} /> Unlimited (Pro Plan)
                           </span>
                         ) : (
                           <div className="flex items-center gap-2">
@@ -152,7 +161,7 @@ export default function AdminUsers({ users = [], setSelectedUser, fetchData }) {
                               className="px-3 py-1.5 rounded-lg border border-orange-500/30 text-orange-500 hover:bg-orange-500/10 text-xs font-semibold font-outfit transition-colors flex items-center gap-1 disabled:opacity-50"
                               title="Reset user upload counter to 0"
                             >
-                              <RotateCcw size={12} /> Reset Limit (0/5)
+                              <RotateCcw size={12} /> Reset Limit
                             </button>
                           )}
 
@@ -164,10 +173,11 @@ export default function AdminUsers({ users = [], setSelectedUser, fetchData }) {
                                 ? 'border border-gray-300 dark:border-neutral-700 text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-800' 
                                 : 'bg-purple-600 hover:bg-purple-700 text-white'
                             }`}
-                            title={isAdmin ? "Demote to Standard User" : "Grant Unlimited Admin Access"}
+                            title={isAdmin ? "Demote to Standard User" : "Grant Platform Admin Access"}
                           >
-                            <Shield size={12} /> {isAdmin ? 'Make User' : 'Grant Unlimited'}
+                            <Shield size={12} /> {isAdmin ? 'Make User' : 'Make Admin'}
                           </button>
+
 
                           {u.email?.toLowerCase() !== 'admin@legalbuddy.com' && (
                             <button

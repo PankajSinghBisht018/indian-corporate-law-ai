@@ -8,6 +8,7 @@ Service Map:
   /summarize/*         → rag_service       (port 8003)
   /result/*            → rag_service       (port 8003)
   /api/summarize/*     → rag_service       (port 8003)
+  /api/payments/*      → payment_service   (port 8004)
   /health              → gateway itself
 """
 import logging
@@ -39,6 +40,7 @@ logger = logging.getLogger(__name__)
 AUTH_SVC     = os.getenv("AUTH_SERVICE_URL",     "http://localhost:8001")
 DOCUMENT_SVC = os.getenv("DOCUMENT_SERVICE_URL", "http://localhost:8002")
 RAG_SVC      = os.getenv("RAG_SERVICE_URL",      "http://localhost:8003")
+PAYMENT_SVC  = os.getenv("PAYMENT_SERVICE_URL",  "http://localhost:8004")
 
 
 def _resolve_upstream(path: str) -> str:
@@ -49,7 +51,10 @@ def _resolve_upstream(path: str) -> str:
         return DOCUMENT_SVC
     if path.startswith("/summarize") or path.startswith("/result") or path.startswith("/api/summarize"):
         return RAG_SVC
+    if path.startswith("/api/payments"):
+        return PAYMENT_SVC
     return None
+
 
 
 class RequestIDMiddleware(BaseHTTPMiddleware):

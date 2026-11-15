@@ -128,6 +128,14 @@ export const summarizeAPI = {
   cancel: (docId) => req(`/api/documents/${docId}/cancel`, { method: 'POST' })
 }
 
+export const paymentAPI = {
+  getPlans: () => req('/api/payments/plans'),
+  getSubscription: () => req('/api/payments/subscription'),
+  createOrder: (planId = 'pro_monthly') => req('/api/payments/create-order', { method: 'POST', body: JSON.stringify({ plan_id: planId }) }),
+  verifyPayment: (payload) => req('/api/payments/verify', { method: 'POST', body: JSON.stringify(payload) }),
+  getHistory: () => req('/api/payments/history')
+}
+
 export const fetchFileAsBlob = async (docId) => {
   const res = await fetch(`${API}/api/documents/${docId}/file`, { headers: authH() })
   if (!res.ok) throw new Error('Cannot fetch file')

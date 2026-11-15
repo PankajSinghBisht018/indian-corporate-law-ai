@@ -379,8 +379,23 @@ async def get_user_profile(user_id: str) -> Optional[dict]:
     is_admin = (
         user.get("role") == "admin" 
         or is_admin_email(email)
-        or user.get("is_unlimited") is True
     )
+
+    tier = (user.get("subscription_tier") or "free").lower()
+    is_pro = tier in ["pro", "paid", "premium"]
+    if is_pro and user.get("subscription_expiry"):
+        try:
+            exp_str = str(user.get("subscription_expiry")).replace("Z", "+00:00")
+            exp_dt = datetime.fromisoformat(exp_str)
+            if exp_dt.tzinfo is None:
+                exp_dt = exp_dt.replace(tzinfo=timezone.utc)
+            if exp_dt < datetime.now(timezone.utc):
+                is_pro = False
+                tier = "free"
+        except Exception:
+            pass
+
+    has_unlimited = is_admin or is_pro or user.get("is_unlimited") is True
 
     return {
         "id": str(user["_id"]),
@@ -392,11 +407,15 @@ async def get_user_profile(user_id: str) -> Optional[dict]:
         "purpose": user.get("purpose") or "",
         "role": "admin" if is_admin else user.get("role", "user"),
         "status": "approved",
-        "subscription_tier": user.get("subscription_tier", "free"),
+        "subscription_tier": "admin" if is_admin else ("pro" if is_pro else "free"),
+        "subscription_plan": user.get("subscription_plan", "basic_free" if not is_pro else "pro_monthly"),
+        "subscription_expiry": user.get("subscription_expiry") if is_pro else None,
         "daily_doc_count": current_count,
-        "doc_limit": None if is_admin else 5,
-        "is_unlimited": is_admin
+        "doc_limit": None if has_unlimited else 5,
+        "is_unlimited": has_unlimited,
+        "is_pro": is_pro
     }
+
 
 
 async def update_user_profile(user_id: str, data: dict) -> dict:

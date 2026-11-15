@@ -11,6 +11,7 @@ def main():
     print("  Auth Service     -> http://localhost:8001")
     print("  Document Service -> http://localhost:8002")
     print("  RAG Service      -> http://localhost:8003")
+    print("  Payment Service  -> http://localhost:8004")
     print("  API Gateway      -> http://localhost:5000\n")
     print("Frontend still runs on http://localhost:5173 (npm run dev)\n")
 
@@ -22,11 +23,13 @@ def main():
     else:
         venv_python = os.path.join("venv", "bin", "python")
 
+    # If local venv path doesn't exist (e.g. inside Docker or global python), fallback to current interpreter
     if not os.path.exists(venv_python):
-        print(f"Warning: Virtual environment not found at {venv_python}. Install dependencies first.")
-        sys.exit(1)
+        venv_python = sys.executable
+    else:
+        venv_python = os.path.abspath(venv_python)
 
-    cwd = os.getcwd()
+    cwd = os.path.abspath(os.getcwd())
     env = os.environ.copy()
     env["PYTHONPATH"] = cwd
     
@@ -34,7 +37,7 @@ def main():
 
     def start_service(module, port):
         if is_windows:
-            cmd = f'start cmd /k "{venv_python} -m uvicorn {module} --host 0.0.0.0 --port {port} --reload"'
+            cmd = f'start "LegalBuddy {module} (Port {port})" /D "{cwd}" cmd /k "{venv_python} -m uvicorn {module} --host 0.0.0.0 --port {port} --reload"'
             subprocess.Popen(cmd, shell=True, env=env)
         else:
             cmd = [venv_python, "-m", "uvicorn", module, "--host", "0.0.0.0", "--port", str(port), "--reload"]
@@ -44,6 +47,7 @@ def main():
     start_service("services.auth_service.main:app", 8001)
     start_service("services.document_service.main:app", 8002)
     start_service("services.rag_service.main:app", 8003)
+    start_service("services.payment_service.main:app", 8004)
     
     time.sleep(3)
     

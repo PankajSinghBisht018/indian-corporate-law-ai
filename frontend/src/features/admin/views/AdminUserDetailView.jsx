@@ -1,4 +1,4 @@
-import { Activity, Shield, ArrowLeft, RotateCcw, ShieldCheck, User, Trash2 } from 'lucide-react'
+import { Activity, Shield, ArrowLeft, RotateCcw, ShieldCheck, User, Trash2, Sparkles, CheckCircle2 } from 'lucide-react'
 import { useUIStore } from '../../../shared/store/uiStore'
 import { adminAPI } from '../../../shared/utils/api'
 import toast from 'react-hot-toast'
@@ -64,7 +64,8 @@ export default function AdminUserDetail({ selectedUser, fetchData }) {
   }
 
   if (!selectedUser) return null
-  const isAdmin = selectedUser.role === 'admin' || selectedUser.is_unlimited === true
+  const isAdmin = selectedUser.role === 'admin'
+  const isPro = selectedUser.subscription_tier === 'pro'
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-8 animate-in slide-in-from-right-4 duration-300">
@@ -94,7 +95,11 @@ export default function AdminUserDetail({ selectedUser, fetchData }) {
               <span className="font-medium text-gray-900 dark:text-white uppercase text-left sm:text-right font-outfit">
                 {isAdmin ? (
                   <span className="px-2.5 py-1 rounded bg-purple-500/10 text-purple-600 font-bold flex items-center gap-1">
-                    <ShieldCheck size={14} /> Admin (Unlimited Uploads)
+                    <ShieldCheck size={14} /> Platform Administrator
+                  </span>
+                ) : isPro ? (
+                  <span className="px-2.5 py-1 rounded bg-orange-500/10 text-orange-600 font-bold flex items-center gap-1 border border-orange-500/20">
+                    <Sparkles size={14} /> Pro Subscriber (₹199 / mo)
                   </span>
                 ) : (
                   <span className="px-2.5 py-1 rounded bg-blue-500/10 text-blue-600 font-bold flex items-center gap-1">
@@ -117,7 +122,9 @@ export default function AdminUserDetail({ selectedUser, fetchData }) {
               <span className="text-gray-500 shrink-0 flex items-center gap-2"><Activity size={14}/> Upload Usage</span>
               <span className="font-bold text-gray-900 dark:text-white text-left sm:text-right font-outfit">
                 {isAdmin ? (
-                  <span className="text-green-500">Unlimited Uploads</span>
+                  <span className="text-purple-600 font-bold">Unlimited Uploads (Admin Privileges)</span>
+                ) : isPro ? (
+                  <span className="text-emerald-500 font-bold flex items-center gap-1"><CheckCircle2 size={14} /> Unlimited Uploads (Pro Subscription)</span>
                 ) : (
                   <span className={selectedUser.daily_doc_count >= 5 ? 'text-red-500' : 'text-orange-500'}>
                     {selectedUser.daily_doc_count || 0} / 5 documents used
@@ -128,7 +135,7 @@ export default function AdminUserDetail({ selectedUser, fetchData }) {
           </div>
           
           <div className="mt-8 pt-6 border-t border-gray-200 dark:border-neutral-800 flex flex-wrap justify-end gap-3">
-            {!isAdmin && (
+            {!isAdmin && !isPro && (
               <button
                 disabled={actionLoading}
                 onClick={() => handleResetLimit(selectedUser.id)}
@@ -143,7 +150,7 @@ export default function AdminUserDetail({ selectedUser, fetchData }) {
               onClick={() => handleToggleRole(selectedUser.id)}
               className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wide shadow-md shadow-purple-600/20 transition-all disabled:opacity-50 flex items-center gap-1.5 font-outfit"
             >
-              <Shield size={14} /> {isAdmin ? 'Demote to Standard User (5 Limit)' : 'Grant Unlimited Admin Access'}
+              <Shield size={14} /> {isAdmin ? 'Demote to Standard User' : 'Grant Admin Privileges'}
             </button>
 
             {selectedUser.email?.toLowerCase() !== 'admin@legalbuddy.com' && (

@@ -11,18 +11,21 @@ import DocumentsView from '../features/documents/views/DocumentsView'
 import AdminPanel from '../features/admin/views/AdminPanelView'
 import QuickTourModal from '../features/onboarding/QuickTourModal'
 import ProfilePageView from '../features/profile/views/ProfilePageView'
+import PricingView from '../features/subscription/views/PricingView'
 import { LegalBuddyLogo } from '../shared/ui/LegalBuddyLogo'
 
 const PAGE_TITLES = { 
   dashboard: 'Dashboard', 
   documents: 'Documents', 
   profile: 'Profile Management',
+  pricing: 'Plans & Subscription',
   admin_overview: 'Admin Dashboard',
   admin_users: 'All Users',
   admin_user_detail: 'User Details',
   admin_agents: 'All Users',
   admin_agent_detail: 'User Details'
 }
+
 
 const pageVariants = {
   initial: { opacity: 0, y: 10 },
@@ -71,6 +74,25 @@ function TopBar() {
       </div>
 
       <div className="flex items-center gap-2">
+        {user?.subscription_tier === 'pro' || user?.is_unlimited ? (
+          <button
+            onClick={() => setPage('pricing')}
+            className="flex items-center gap-1.5 py-1 px-3 rounded-full bg-gradient-to-r from-orange-500/10 to-amber-500/10 border border-orange-500/30 text-orange-600 dark:text-orange-400 text-xs font-extrabold font-outfit shadow-sm cursor-pointer hover:bg-orange-500/20 transition-all"
+            title="View Pro Subscription Details"
+          >
+            <Sparkles size={12} className="text-orange-500" />
+            <span className="tracking-wider">PRO</span>
+          </button>
+        ) : !isAdmin ? (
+          <button
+            onClick={() => setPage('pricing')}
+            className="hidden sm:flex items-center gap-1.5 py-1 px-3 rounded-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 text-xs font-bold font-outfit transition-all cursor-pointer shadow-sm"
+            title="Upgrade to Pro Plan for Unlimited Uploads"
+          >
+            <Sparkles size={12} /> Upgrade (₹199)
+          </button>
+        ) : null}
+
         <button
           onClick={() => setPage('profile')}
           className="flex items-center gap-2.5 py-1.5 pr-4 pl-2 rounded-full bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-sm hover:border-orange-500/40 transition-all cursor-pointer group text-left"
@@ -84,11 +106,12 @@ function TopBar() {
               {user?.name || user?.email?.split('@')[0] || 'User'}
             </span>
             <span className="text-[9px] text-gray-400 font-poppins">
-              {isAdmin ? 'Admin' : `${user?.daily_doc_count || 0}/5 docs`}
+              {isAdmin ? 'Admin' : (user?.subscription_tier === 'pro' || user?.is_unlimited ? 'Unlimited docs' : `${user?.daily_doc_count || 0}/5 docs`)}
             </span>
           </div>
         </button>
       </div>
+
     </header>
   )
 }
@@ -141,6 +164,8 @@ export default function Layout() {
     switch (page) {
       case 'profile':
         return <ProfilePageView />
+      case 'pricing':
+        return <PricingView />
       case 'documents':
         return <DocumentsView />
       case 'admin_overview':

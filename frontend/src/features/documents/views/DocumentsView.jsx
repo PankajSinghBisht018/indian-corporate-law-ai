@@ -8,6 +8,7 @@ import {
 import toast from 'react-hot-toast'
 import { useFileStore } from '../models/fileStore'
 import { useAuthStore } from '../../auth/models/authStore'
+import { useUIStore } from '../../../shared/store/uiStore'
 import { documentAPI, summarizeAPI, authAPI } from '../../../shared/utils/api'
 import FileViewer from './FileViewerView'
 import { ContentLoader } from '../../../shared/ui/Loader'
@@ -213,6 +214,7 @@ function AnalysisContent({ summaryData, activeTab, activeDocId, filename }) {
 export default function DocumentsView() {
   const { files, setFiles, activeDocId, summaryData, setActive, setSummary, clearActive } = useFileStore()
   const { user, incrementDocCount, initAuth } = useAuthStore()
+  const { setPage } = useUIStore()
   const [activeTab, setActiveTab] = useState('file')
   const [uploading, setUploading] = useState(false)
   const [loading, setLoading]     = useState(false)
@@ -221,9 +223,11 @@ export default function DocumentsView() {
   const [uploadHovered, setUploadHovered] = useState(false)
   const inputRef = useRef(null)
 
-  const isAdmin = user?.role === 'admin' || user?.is_unlimited === true
+  const isUnlimited = user?.role === 'admin' || user?.subscription_tier === 'pro' || user?.is_unlimited === true
+  const isAdmin = user?.role === 'admin'
+  const isPro = user?.subscription_tier === 'pro'
   const docsUsedToday = user?.daily_doc_count ?? 0
-  const isLimitReached = !isAdmin && docsUsedToday >= 5
+  const isLimitReached = !isUnlimited && docsUsedToday >= 5
 
   const fetchFiles = async () => {
     try { 
@@ -274,7 +278,8 @@ export default function DocumentsView() {
   const handleUpload = async (file) => {
     if (!file) return
     if (isLimitReached) {
-      toast.error('Daily limit of 5 uploads reached. An Admin can reset your limit in the Admin Panel.')
+      toast.error('Free limit of 5 uploads reached. Upgrade to Pro (₹199/month) for unlimited contract analyses!')
+      setPage('pricing')
       return
     }
     const name = file.name.toLowerCase()
@@ -340,6 +345,10 @@ export default function DocumentsView() {
                       <span className="text-xs px-2.5 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-bold border border-green-500/20">
                         Admin • Unlimited Uploads
                       </span>
+                    ) : isPro ? (
+                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20 flex items-center gap-1">
+                        <Sparkles size={11} /> Pro • Unlimited Uploads
+                      </span>
                     ) : (
                       <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold border ${isLimitReached ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-orange-500/10 text-orange-500 border-orange-500/20'}`}>
                         Uploads Today: {docsUsedToday} / 5
@@ -396,15 +405,24 @@ export default function DocumentsView() {
                     </div>
                     <p className="text-sm font-bold text-gray-900 dark:text-white font-outfit">User Document Limit Reached ({docsUsedToday}/5)</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 font-poppins max-w-md mx-auto">
-                      You have used your 5 document uploads for this period. An Admin can reset your limit anytime from the Admin Panel, or log in as Admin for unlimited uploads.
+                      You have used your 5 free document uploads. Upgrade to Pro for ₹199/month for unlimited contract uploads &amp; priority AI analysis.
                     </p>
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); initAuth(); toast.success('Checking updated limits...') }}
-                      className="mt-2 text-xs font-semibold text-orange-500 hover:underline flex items-center gap-1 mx-auto"
-                    >
-                      <RefreshCw size={12} /> Check if Admin has reset your limit
-                    </button>
+                    <div className="flex items-center justify-center gap-3 pt-1">
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setPage('pricing'); }}
+                        className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold font-outfit shadow-md shadow-orange-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Sparkles size={13} /> Upgrade to Pro (₹199/mo)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); initAuth(); toast.success('Checking updated limits...') }}
+                        className="text-xs font-semibold text-gray-500 hover:text-orange-500 flex items-center gap-1 cursor-pointer"
+                      >
+                        <RefreshCw size={12} /> Refresh
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <>
@@ -416,7 +434,7 @@ export default function DocumentsView() {
                         Click to upload or drag &amp; drop IT contract
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-400 font-poppins">
-                        PDF, DOCX, or DOC · {isAdmin ? 'Unlimited uploads enabled' : `${5 - docsUsedToday} upload(s) available`}
+                        PDF, DOCX, or DOC · {isUnlimited ? 'Unlimited uploads enabled' : `${5 - docsUsedToday} upload(s) available`}
                       </p>
                     </div>
                   </>

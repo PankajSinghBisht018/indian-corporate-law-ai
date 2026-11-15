@@ -32,10 +32,13 @@ function SidebarContent({ onClose }) {
     navItems.push({ id: 'admin_overview', icon: LayoutDashboard, label: 'Dashboard' })
     navItems.push({ id: 'admin_users',    icon: Users,           label: 'All Users' })
     navItems.push({ id: 'documents',      icon: FolderOpen,      label: 'Documents' })
+    navItems.push({ id: 'pricing',        icon: CreditCard,      label: 'Plans & Pricing' })
   } else {
     navItems.push({ id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' })
     navItems.push({ id: 'documents', icon: FolderOpen,      label: 'Documents' })
+    navItems.push({ id: 'pricing',   icon: CreditCard,      label: 'Plans & Pricing' })
   }
+
 
   return (
     <div className="w-60 h-screen bg-gray-50 dark:bg-neutral-950 border-r border-gray-200 dark:border-neutral-800 flex flex-col shrink-0 sticky top-0 overflow-hidden z-30 transition-colors duration-300">
@@ -102,36 +105,55 @@ function SidebarContent({ onClose }) {
         </button>
       </nav>
 
-      {/* Uploads Usage Box: Unlimited for Admin, 5 for User */}
+      {/* Uploads Usage Box: Unlimited for Admin & Pro, 5 for Basic User */}
       {isAdmin ? (
-        <div className="px-4 py-3 mb-2 mx-3 bg-green-500/10 border border-green-500/20 rounded-xl">
+        <div className="px-4 py-3 mb-2 mx-3 bg-purple-500/10 border border-purple-500/20 rounded-xl">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-bold tracking-widest uppercase text-green-700 dark:text-green-400 font-outfit flex items-center gap-1">
+            <span className="text-[10px] font-bold tracking-widest uppercase text-purple-700 dark:text-purple-400 font-outfit flex items-center gap-1">
               <ShieldCheck size={12} /> Admin Plan
             </span>
-            <span className="text-[11px] font-bold text-green-600 dark:text-green-400 font-poppins">Unlimited</span>
+            <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 font-poppins">Unlimited</span>
           </div>
           <p className="text-[10px] text-gray-500 dark:text-gray-400 font-poppins">
             No document upload limits applied to Admin accounts.
           </p>
         </div>
+      ) : user?.subscription_tier === 'pro' || user?.is_unlimited ? (
+        <div className="px-4 py-3 mb-2 mx-3 bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-orange-500/30 rounded-xl">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] font-bold tracking-widest uppercase text-orange-600 dark:text-orange-400 font-outfit flex items-center gap-1">
+              <Sparkles size={12} /> Pro Plan
+            </span>
+            <span className="text-[11px] font-bold text-orange-600 dark:text-orange-400 font-poppins">Unlimited</span>
+          </div>
+          <p className="text-[10px] text-gray-500 dark:text-gray-400 font-poppins">
+            Unlimited IT contract analyses active.
+          </p>
+        </div>
       ) : (
-        <div className="px-4 py-3 mb-2 mx-3 bg-white/60 dark:bg-neutral-900/60 border border-gray-200 dark:border-neutral-800 rounded-xl">
-          <div className="flex items-center justify-between mb-1.5">
+        <div className="px-4 py-3 mb-2 mx-3 bg-white/60 dark:bg-neutral-900/60 border border-gray-200 dark:border-neutral-800 rounded-xl space-y-2">
+          <div className="flex items-center justify-between mb-0.5">
             <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500 font-outfit">Upload Limit</span>
             <span className="text-xs font-semibold text-orange-500 font-poppins">{user?.daily_doc_count || 0}/5</span>
           </div>
-          <div className="h-1.5 w-full bg-gray-200 dark:bg-neutral-800 rounded-full overflow-hidden mb-1.5">
+          <div className="h-1.5 w-full bg-gray-200 dark:bg-neutral-800 rounded-full overflow-hidden">
             <div 
               className="h-full bg-orange-500 transition-all duration-500 ease-out" 
               style={{ width: `${Math.min(100, ((user?.daily_doc_count || 0) / 5) * 100)}%` }}
             />
           </div>
           <div className="text-[9px] text-gray-400 dark:text-gray-500 font-medium text-right flex items-center justify-end gap-1 font-poppins">
-            User limit (5 docs) · Resets in {hoursLeft}h {minsLeft}m
+            Resets in {hoursLeft}h {minsLeft}m
           </div>
+          <button
+            onClick={() => { setPage('pricing'); onClose?.(); }}
+            className="w-full py-1.5 px-2 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 text-[10px] font-bold font-outfit uppercase tracking-wider flex items-center justify-center gap-1 cursor-pointer transition-colors"
+          >
+            <Sparkles size={11} /> Upgrade to Pro (₹199)
+          </button>
         </div>
       )}
+
 
       {/* Footer controls & user profile */}
       <div className="p-3 border-t border-gray-200 dark:border-neutral-800 flex flex-col gap-1.5">

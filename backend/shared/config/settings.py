@@ -74,6 +74,11 @@ class Config:
         # Security / CAPTCHA
         self.RECAPTCHA_SECRET = os.getenv("RECAPTCHA_SECRET", "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe")
 
+        # Razorpay Payment Gateway
+        self.RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_YourTestKeyIdHere")
+        self.RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "YourRazorpaySecretHere")
+        self.RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET", "")
+
 _settings = Config()
 
 def get_settings() -> Config:

@@ -156,3 +156,86 @@ class UserRepository:
             update_data = {"$inc": {"daily_doc_count": 1}}
         await coll.update_one({"_id": ObjectId(user_id)}, update_data)
         return await coll.find_one({"_id": ObjectId(user_id)})
+
+    # ── Subscription & Payment Methods ─────────────────────────────────────────
+    @staticmethod
+    def get_payments_collection():
+        return DatabaseManager.get_db().payments
+
+    @staticmethod
+    def get_orders_collection():
+        return DatabaseManager.get_db().payment_orders
+
+    @classmethod
+    async def activate_subscription(
+        cls, 
+        user_id: str, 
+        plan_id: str = "pro_monthly", 
+        duration_days: int = 30,
+        order_id: Optional[str] = None,
+        payment_id: Optional[str] = None
+    ) -> dict:
+        """Activate or extend user subscription to Pro plan with unlimited uploads."""
+        coll = cls.get_collection()
+        now = datetime.now(timezone.utc)
+        expiry = now + timedelta(days=duration_days)
+
+        update_fields = {
+            "subscription_tier": "pro",
+            "subscription_status": "active",
+            "subscription_plan": plan_id,
+            "subscription_start": now.isoformat(),
+            "subscription_expiry": expiry.isoformat(),
+            "is_unlimited": True,
+            "last_order_id": order_id,
+            "last_payment_id": payment_id,
+            "updated_at": now
+        }
+
+        await coll.update_one({"_id": ObjectId(user_id)}, {"$set": update_fields})
+        return await coll.find_one({"_id": ObjectId(user_id)})
+
+    @classmethod
+    async def save_payment_order(cls, order_data: dict) -> dict:
+        """Save a new checkout order."""
+        coll = cls.get_orders_collection()
+        order_data["created_at"] = datetime.now(timezone.utc)
+        order_data["status"] = order_data.get("status", "created")
+        res = await coll.insert_one(order_data)
+        order_data["_id"] = str(res.inserted_id)
+        return order_data
+
+    @classmethod
+    async def get_payment_order(cls, order_id: str) -> Optional[dict]:
+        """Fetch order by Razorpay order_id."""
+        coll = cls.get_orders_collection()
+        return await coll.find_one({"order_id": order_id})
+
+    @classmethod
+    async def update_payment_order(cls, order_id: str, updates: dict) -> None:
+        """Update order status / details."""
+        coll = cls.get_orders_collection()
+        updates["updated_at"] = datetime.now(timezone.utc)
+        await coll.update_one({"order_id": order_id}, {"$set": updates})
+
+    @classmethod
+    async def record_payment(cls, payment_data: dict) -> dict:
+        """Record completed payment receipt for audit trail."""
+        coll = cls.get_payments_collection()
+        payment_data["created_at"] = datetime.now(timezone.utc)
+        res = await coll.insert_one(payment_data)
+        payment_data["_id"] = str(res.inserted_id)
+        return payment_data
+
+    @classmethod
+    async def get_payment_history(cls, user_id: str) -> list:
+        """Get past payments for a user."""
+        coll = cls.get_payments_collection()
+        cursor = coll.find({"$or": [{"user_id": user_id}, {"user_id": ObjectId(user_id)}]}).sort("created_at", -1)
+        payments = await cursor.to_list(length=100)
+        for p in payments:
+            p["_id"] = str(p["_id"])
+            if isinstance(p.get("created_at"), datetime):
+                p["created_at"] = p["created_at"].isoformat()
+        return payments
+
