@@ -1,3 +1,4 @@
+import UpgradeButton from './UpgradeButton'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
@@ -6,7 +7,6 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuthStore } from '../../auth/models/authStore'
-import { useUIStore } from '../../../shared/store/uiStore'
 import { authAPI } from '../../../shared/utils/api'
 
 const IT_ROLES = [
@@ -35,7 +35,6 @@ const fadeItem = (i) => ({
 
 export default function ProfilePageView() {
   const { user, login } = useAuthStore()
-  const { setPage } = useUIStore()
   const [name, setName] = useState('')
   const [company, setCompany] = useState('')
   const [designation, setDesignation] = useState('')
@@ -202,56 +201,10 @@ export default function ProfilePageView() {
                     You have reached the daily 5-document limit. Uploads reset at midnight UTC, or ask your administrator to reset your quota.
                   </div>
                 )}
+
+                <UpgradeButton />
               </div>
             )}
-          </motion.div>
-
-          {/* Subscription Tier Card */}
-          <motion.div {...fadeItem(3)} className="bg-white/60 dark:bg-neutral-900/60 backdrop-blur-md border border-gray-200 dark:border-neutral-800 rounded-3xl p-6 shadow-sm">
-            <h3 className="font-outfit text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <Sparkles size={16} className="text-orange-500" />
-                Subscription Plan
-              </span>
-              {user?.subscription_tier === 'pro' || user?.is_unlimited ? (
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold font-outfit uppercase">
-                  Pro Plan
-                </span>
-              ) : (
-                <span className="px-2.5 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 text-[10px] font-bold font-outfit uppercase">
-                  Basic Free
-                </span>
-              )}
-            </h3>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-500 dark:text-gray-400">Current Tier</span>
-                <span className="font-semibold text-gray-900 dark:text-white capitalize font-outfit">
-                  {user?.subscription_tier === 'pro' || user?.is_unlimited ? 'Pro (₹199 / month)' : 'Basic (Free)'}
-                </span>
-              </div>
-
-              {user?.subscription_expiry && (
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500 dark:text-gray-400">Valid Until</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {new Date(user.subscription_expiry).toLocaleDateString()}
-                  </span>
-                </div>
-              )}
-
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => setPage('pricing')}
-                  className="w-full py-2.5 px-3 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 text-xs font-bold font-outfit uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <Sparkles size={13} />
-                  {user?.subscription_tier === 'pro' || user?.is_unlimited ? 'View Plan & Invoices' : 'Upgrade to Pro (₹199/mo)'}
-                </button>
-              </div>
-            </div>
           </motion.div>
 
         </div>

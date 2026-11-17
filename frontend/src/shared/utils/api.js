@@ -93,6 +93,40 @@ export const authAPI = {
       headers: authH(), 
       body: JSON.stringify(data) 
     }).then(handleRes),
+
+  createOrder: async () => {
+    const res = await paymentAPI.createOrder('pro_monthly', 'phonepe')
+    return {
+      order_id: res.merchant_transaction_id || res.order_id,
+      redirect_url: res.checkout_url || res.redirect_url,
+      ...res
+    }
+  },
+
+  paymentStatus: async (orderId) => {
+    try {
+      const res = await paymentAPI.verifyPayment({ merchant_transaction_id: orderId, gateway: 'phonepe' })
+      if (res?.success) {
+        return {
+          state: 'COMPLETED',
+          expires: res.subscription_expiry,
+          ...res
+        }
+      }
+      if (res?.pending) {
+        return {
+          state: 'PENDING',
+          ...res
+        }
+      }
+      return {
+        state: 'FAILED',
+        ...res
+      }
+    } catch (err) {
+      return { state: 'PENDING', error: err.message }
+    }
+  },
 }
 
 export const adminAPI = {
