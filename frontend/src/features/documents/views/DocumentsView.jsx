@@ -51,11 +51,26 @@ const STEP_INDEX = { chunking: 0, embedding: 1, indexing: 2, analyzing: 3 }
 
 const getExt = (filename) => (filename?.split('.').pop() || '').toUpperCase()
 
+const cleanText = (val) => {
+  let s = String(val || '').trim()
+  // Strip stray JSON key/quote/bracket artifacts if LLM returned partial JSON
+  s = s.replace(/^[-*•]\s*/, '')
+       .replace(/^"?[a-z_]+"?\s*:\s*["\[]?\s*/i, '')
+       .replace(/^":\s*"?/, '')
+       .replace(/^"+|"+,?$/g, '')
+       .replace(/\\"/g, '"')
+       .trim()
+  if (/^[\[\]{},]+$/.test(s)) return ''
+  return s
+}
+
 const toBullets = (text) => {
-  const raw = String(text || '').trim()
+  const raw = cleanText(text)
   if (!raw) return []
-  if (raw.includes('\n')) return raw.split('\n').map((l) => l.trim()).filter(Boolean).map((l) => (/^[-*]/.test(l) ? l : `- ${l}`))
-  return raw.split(/(?<=[.!?])\s+(?=[A-Z"'(])/).map((s) => `- ${s.trim()}`).filter((s) => s.length > 2)
+  // If raw accidentally contains embedded JSON sections like `"clauses": [`, cut before them
+  const cut = raw.split(/\n\s*"?(?:clauses|obligations|risks|compliance|risk_score)"?\s*:/i)[0].trim()
+  if (cut.includes('\n')) return cut.split('\n').map(cleanText).filter(Boolean).map((l) => `- ${l}`)
+  return cut.split(/(?<=[.!?])\s+(?=[A-Z"'(])/).map(cleanText).filter((s) => s.length > 2).map((s) => `- ${s}`)
 }
 
 const isDone = (status) =>['done', 'completed'].includes((status || '').toLowerCase())
@@ -95,22 +110,37 @@ function renderBold(text) {
 
 function BulletBlock({ content }) {
   const lines = (Array.isArray(content) ? content : String(content || '').split('\n'))
-    .map((l) => String(l).trim())
+    .map(cleanText)
     .filter(Boolean)
 
   if (!lines.length) return <p className="text-gray-500 dark:text-gray-400">No items identified.</p>
 
-  if (lines.length === 1 && !/^[-*]/.test(lines[0])) return (
+  if (lines.length === 1) return (
     <p className="text-gray-700 dark:text-gray-300 text-base leading-relaxed whitespace-pre-wrap">{renderBold(lines[0])}</p>
   )
 
   return (
-    <div className="flex flex-col gap-4">
-      {lines.map((line, i) => (
-        <div key={i} className="text-gray-700 dark:text-gray-300 text-base leading-relaxed">
-          <span className="text-orange-500 mr-2">-</span>{renderBold(line.replace(/^[-*]\s*/, ''))}
-        </div>
-      ))}
+    <div className="flex flex-col gap-3">
+      {lines.map((line, i) => {
+        const sepIdx = line.indexOf(' — ') !== -1 ? line.indexOf(' — ') : line.indexOf(' - ')
+        const hasTitle = sepIdx > 0 && sepIdx < 80
+        return (
+          <div key={i} className="p-4 rounded-xl border border-gray-200/70 dark:border-neutral-800 bg-gray-50/70 dark:bg-neutral-900/50 text-gray-700 dark:text-gray-300 text-sm md:text-base leading-relaxed flex items-start gap-3">
+            <span className="w-2 h-2 rounded-full bg-orange-500 mt-2 shrink-0" />
+            <div className="flex-1">
+              {hasTitle ? (
+                <>
+                  <strong className="text-gray-900 dark:text-white font-semibold">{line.slice(0, sepIdx)}</strong>
+                  <span className="text-gray-400 mx-1.5">—</span>
+                  <span>{renderBold(line.slice(sepIdx + 3))}</span>
+                </>
+              ) : (
+                renderBold(line)
+              )}
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -255,7 +285,7 @@ function AnalysisContent({ summaryData, activeTab, activeDocId, filename }) {
             <div className="flex flex-col gap-6">
               <div className="flex items-start md:items-center justify-between p-6 rounded-2xl border border-gray-200/60 dark:border-neutral-800/60 bg-white/60 dark:bg-neutral-900/40 backdrop-blur-md shadow-sm gap-6 flex-col md:flex-row">
                 <p className="flex-1 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                  {d.critical_risks || 'No critical corporate legal or contractual risks identified in this document.'}
+                  {cleanText(d.critical_risks) || 'No critical corporate legal or contractual risks identified in this document.'}
                 </p>
                 <div className="flex flex-col items-center justify-center shrink-0">
                   <div className="relative w-20 h-20">
@@ -273,7 +303,7 @@ function AnalysisContent({ summaryData, activeTab, activeDocId, filename }) {
 
               {d.risks.length ? (
                 <div className="flex flex-col gap-3">
-                  {d.risks.map((item, i) => (
+                  {d.risks.map(cleanText).filter(Boolean).map((item, i) => (
                     <motion.div
                       key={i}
                       initial={{ opacity: 0, x: -6 }}
@@ -281,7 +311,7 @@ function AnalysisContent({ summaryData, activeTab, activeDocId, filename }) {
                       transition={{ delay: i * 0.04 }}
                       className="p-4 rounded-xl border border-rose-200/60 dark:border-rose-500/20 border-l-[3px] border-l-rose-500 bg-rose-50/60 dark:bg-rose-500/10 backdrop-blur-md shadow-sm text-rose-900 dark:text-rose-100 text-sm leading-relaxed"
                     >
-                      {renderBold(String(item))}
+                      {renderBold(item)}
                     </motion.div>
                   ))}
                 </div>

@@ -45,9 +45,11 @@ class Config:
         self.MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", 50))
         self.ALLOWED_EXTENSIONS = {"pdf", "docx", "txt"}
 
-        # Ollama LLM
+        # Ollama LLM & Groq Fast Cloud Primary
         self.OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
         self.OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen3:1.7b")
+        self.GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
+        self.GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b").strip()
         self.OLLAMA_TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", 120))
 
         # RAG / chunking
